@@ -1,77 +1,25 @@
 import AgentCard from "@/components/agent-card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
-import { Sparkles, Mail, ShieldCheck, BarChart3, ShoppingBag, Palette, Banknote, TrendingUp } from "lucide-react";
+import { Search, Sparkles, Mail, ShieldCheck, BarChart3, ShoppingBag, Palette, Banknote, TrendingUp, LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import type { Agent } from "@shared/schema";
 
-const allAgents = [
-  {
-    name: "SocialGenie",
-    description: "Automate social media content creation and scheduling with AI-powered insights",
-    domain: "Workflow Automation",
-    icon: Sparkles,
-    usesServed: 1247,
-    avgResponse: "1.2s",
-  },
-  {
-    name: "MailMind",
-    description: "Intelligent email marketing automation with personalization at scale",
-    domain: "Workflow Automation",
-    icon: Mail,
-    usesServed: 892,
-    avgResponse: "0.8s",
-  },
-  {
-    name: "ComplianceGuard",
-    description: "Real-time AML/KYC monitoring with regulatory compliance automation",
-    domain: "Data & Compliance",
-    icon: ShieldCheck,
-    usesServed: 2103,
-    avgResponse: "2.1s",
-  },
-  {
-    name: "InsightBot",
-    description: "Advanced business intelligence with predictive analytics and reporting",
-    domain: "Data & Compliance",
-    icon: BarChart3,
-    usesServed: 1567,
-    avgResponse: "1.5s",
-  },
-  {
-    name: "ShopAssist",
-    description: "24/7 e-commerce customer support with intelligent product recommendations",
-    domain: "Customer Support",
-    icon: ShoppingBag,
-    usesServed: 3421,
-    avgResponse: "0.6s",
-  },
-  {
-    name: "StyleAdvisor",
-    description: "Personalized product styling and recommendation engine",
-    domain: "Customer Support",
-    icon: Palette,
-    usesServed: 987,
-    avgResponse: "1.0s",
-  },
-  {
-    name: "YieldMaximizer",
-    description: "Automated DeFi yield optimization across multiple protocols",
-    domain: "DeFi Services",
-    icon: Banknote,
-    usesServed: 1834,
-    avgResponse: "1.8s",
-  },
-  {
-    name: "TradeMind",
-    description: "Autonomous trading strategies with risk management",
-    domain: "DeFi Services",
-    icon: TrendingUp,
-    usesServed: 1256,
-    avgResponse: "2.3s",
-  },
-];
+const iconMap: Record<string, LucideIcon> = {
+  Sparkles,
+  Mail,
+  ShieldCheck,
+  BarChart3,
+  ShoppingBag,
+  Palette,
+  Banknote,
+  TrendingUp,
+};
 
 const domains = ["All", "Workflow Automation", "Data & Compliance", "Customer Support", "DeFi Services"];
 
@@ -80,14 +28,33 @@ export default function Marketplace() {
   const [selectedDomain, setSelectedDomain] = useState("All");
   const { toast } = useToast();
 
-  const handleDeploy = (agentName: string) => {
-    toast({
-      title: "Agent Deployment Initiated",
-      description: `${agentName} is being deployed. Masumi DID verification and Hydra payment channel setup in progress.`,
-    });
-  };
+  const { data: agents, isLoading } = useQuery<Agent[]>({
+    queryKey: ["/api/agents"],
+  });
 
-  const filteredAgents = allAgents.filter((agent) => {
+  const deployMutation = useMutation({
+    mutationFn: async (agentId: string) => {
+      const response = await apiRequest("POST", `/api/agents/${agentId}/deploy`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Agent Deployed",
+        description: `${data.message}. Transaction: ${data.txHash}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/agents"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/decision-logs"] });
+    },
+    onError: () => {
+      toast({
+        title: "Deployment Failed",
+        description: "Failed to deploy agent. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const filteredAgents = (agents || []).filter((agent) => {
     const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          agent.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDomain = selectedDomain === "All" || agent.domain === selectedDomain;
@@ -121,7 +88,7 @@ export default function Marketplace() {
           <Badge
             key={domain}
             variant={selectedDomain === domain ? "default" : "secondary"}
-            className="cursor-pointer hover-elevate"
+            className="cursor-pointer"
             onClick={() => setSelectedDomain(domain)}
             data-testid={`badge-filter-${domain.toLowerCase().replace(/\s+/g, '-')}`}
           >
@@ -130,17 +97,42 @@ export default function Marketplace() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAgents.map((agent) => (
-          <AgentCard
-            key={agent.name}
-            {...agent}
-            onDeploy={() => handleDeploy(agent.name)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6 space-y-4">
+                <Skeleton className="h-12 w-12 rounded-lg" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAgents.map((agent) => {
+            const IconComponent = iconMap[agent.icon] || Sparkles;
+            return (
+              <AgentCard
+                key={agent.id}
+                name={agent.name}
+                description={agent.description}
+                domain={agent.domain}
+                icon={IconComponent}
+                usesServed={agent.usesServed}
+                avgResponse={`${(agent.avgResponseMs / 1000).toFixed(1)}s`}
+                isVerified={agent.isVerified}
+                onDeploy={() => deployMutation.mutate(agent.id)}
+              />
+            );
+          })}
+        </div>
+      )}
 
-      {filteredAgents.length === 0 && (
+      {!isLoading && filteredAgents.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No agents found matching your criteria</p>
         </div>

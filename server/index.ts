@@ -2,6 +2,40 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { spawn } from "child_process";
+import path from "path";
+
+function startPythonBackend() {
+  const pythonProcess = spawn('python', ['app.py'], {
+    cwd: path.join(process.cwd(), 'python_backend'),
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env }
+  });
+
+  pythonProcess.stdout.on('data', (data) => {
+    console.log(`[python] ${data.toString().trim()}`);
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    console.log(`[python] ${data.toString().trim()}`);
+  });
+
+  pythonProcess.on('error', (error) => {
+    console.error('[python] Failed to start:', error);
+  });
+
+  pythonProcess.on('close', (code) => {
+    console.log(`[python] Process exited with code ${code}`);
+    if (code !== 0) {
+      console.log('[python] Restarting in 3 seconds...');
+      setTimeout(startPythonBackend, 3000);
+    }
+  });
+
+  return pythonProcess;
+}
+
+startPythonBackend();
 
 const app = express();
 const httpServer = createServer(app);

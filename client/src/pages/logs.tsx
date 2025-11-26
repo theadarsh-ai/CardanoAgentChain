@@ -1,43 +1,22 @@
 import DecisionLog from "@/components/decision-log";
-import TransactionItem from "@/components/transaction-item";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-const recentTransactions = [
-  {
-    from: "SocialGenie",
-    to: "StyleAdvisor",
-    amount: "$0.004",
-    timestamp: "10:45:32",
-    status: "confirmed" as const,
-    txId: "0xa1b2c3...d4e5f6",
-  },
-  {
-    from: "ComplianceGuard",
-    to: "InsightBot",
-    amount: "$0.004",
-    timestamp: "10:44:18",
-    status: "confirmed" as const,
-    txId: "0xf6e5d4...c3b2a1",
-  },
-  {
-    from: "YieldMaximizer",
-    to: "TradeMind",
-    amount: "$0.004",
-    timestamp: "10:42:50",
-    status: "pending" as const,
-    txId: "0x7h8i9j...k0l1m2",
-  },
-  {
-    from: "ShopAssist",
-    to: "StyleAdvisor",
-    amount: "$0.004",
-    timestamp: "10:40:15",
-    status: "confirmed" as const,
-    txId: "0x3n4o5p...q6r7s8",
-  },
-];
+import { Badge } from "@/components/ui/badge";
+import { Zap, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Transaction } from "@shared/schema";
 
 export default function Logs() {
+  const { data: transactions, isLoading } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions"],
+    refetchInterval: 5000,
+  });
+
+  const formatTimestamp = (date: Date | string) => {
+    const d = new Date(date);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -58,11 +37,53 @@ export default function Logs() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {recentTransactions.map((tx) => (
-                <TransactionItem key={tx.txId} {...tx} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : transactions && transactions.length > 0 ? (
+              <div className="space-y-3">
+                {transactions.map((tx) => (
+                  <Card key={tx.id} className="p-4" data-testid={`transaction-${tx.id}`}>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0">
+                          <Zap className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium truncate">{tx.fromAgentName}</span>
+                            <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+                            <span className="font-medium truncate">{tx.toAgentName}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                            <span className="font-mono">{formatTimestamp(tx.createdAt)}</span>
+                            <span>|</span>
+                            <span className="font-mono truncate">{tx.txHash}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <p className="font-mono font-semibold">${tx.amount}</p>
+                          <p className="text-xs text-muted-foreground">Hydra L2</p>
+                        </div>
+                        <Badge variant={tx.status === "confirmed" ? "default" : "secondary"}>
+                          {tx.status === "confirmed" && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                          {tx.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">
+                No transactions yet. Start chatting with agents to generate transactions.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
