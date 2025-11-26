@@ -1,12 +1,15 @@
+"""OpenAI integration service for AgentHub."""
 import os
 import json
-from openai import OpenAI
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from agents import get_agent_system_prompt, create_agent_graph
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-def get_agent_response(agent_name, system_prompt, user_message, conversation_history=None):
+def get_agent_response(agent_name: str, system_prompt: str, user_message: str, conversation_history=None) -> str:
     """
-    Get a response from an agent using OpenAI.
+    Get a response from an agent using LangGraph and OpenAI.
     
     Args:
         agent_name: Name of the agent responding
@@ -30,29 +33,26 @@ Additional context:
 - Provide helpful, accurate, and actionable responses
 - When collaborating with other agents, mention it in your response"""
     
-    messages = [{"role": "system", "content": enhanced_system_prompt}]
-    
-    for msg in conversation_history[-10:]:
-        messages.append({
-            "role": msg["role"],
-            "content": msg["content"]
-        })
-    
-    messages.append({"role": "user", "content": user_message})
-    
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            max_tokens=1024,
-            temperature=0.7,
-        )
-        return response.choices[0].message.content
+        llm = ChatOpenAI(model="gpt-4o", api_key=OPENAI_API_KEY, temperature=0.7)
+        
+        messages = [SystemMessage(content=enhanced_system_prompt)]
+        
+        for msg in conversation_history[-10:]:
+            if msg.get("role") == "user":
+                messages.append(HumanMessage(content=msg.get("content", "")))
+            else:
+                messages.append(AIMessage(content=msg.get("content", "")))
+        
+        messages.append(HumanMessage(content=user_message))
+        
+        response = llm.invoke(messages)
+        return response.content
     except Exception as e:
         print(f"OpenAI API error: {e}")
-        return f"I apologize, but I encountered an error processing your request. Please try again."
+        return f"I apologize, but I encountered an error processing your request: {str(e)}. Please try again."
 
-def analyze_user_request(user_message):
+def analyze_user_request(user_message: str) -> dict:
     """
     Analyze user request to determine which agent(s) should handle it.
     
@@ -85,18 +85,14 @@ If the request is general or doesn't fit any agent, use "AgentHub" as the agent.
 If multiple agents should collaborate, list all relevant agents and set requires_collaboration to true."""
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ],
-            max_tokens=256,
-            temperature=0.3,
-            response_format={"type": "json_object"}
-        )
+        llm = ChatOpenAI(model="gpt-4o", api_key=OPENAI_API_KEY, temperature=0.3)
         
-        result = json.loads(response.choices[0].message.content)
+        response = llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_message)
+        ])
+        
+        result = json.loads(response.content)
         return {
             "selected_agents": result.get("selected_agents", ["AgentHub"]),
             "analysis": result.get("analysis", "Processing your request"),
@@ -110,7 +106,7 @@ If multiple agents should collaborate, list all relevant agents and set requires
             "requires_collaboration": False
         }
 
-def simulate_agent_collaboration(primary_agent, collaborating_agent, task_description):
+def simulate_agent_collaboration(primary_agent: str, collaborating_agent: str, task_description: str) -> str:
     """
     Simulate a collaboration between two agents.
     

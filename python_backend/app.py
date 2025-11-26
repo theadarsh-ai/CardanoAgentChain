@@ -192,9 +192,10 @@ def chat():
         
         DecisionLogModel.create(
             agent_name=response_agent_name,
-            action=f"Processed user request: \"{message[:50]}{'...' if len(message) > 50 else ''}\"",
+            action=f"Processed user request via LangGraph agent",
             details=json.dumps({
-                "user_message": message,
+                "user_message": message[:100],
+                "agent": response_agent_name,
                 "response_preview": response_content[:200]
             }),
             agent_id=selected_agent["id"] if selected_agent else None,
@@ -217,7 +218,9 @@ def chat():
         })
     except Exception as e:
         print(f"Error in chat: {e}")
-        return jsonify({"error": "Failed to process chat message"}), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to process chat message: {str(e)}"}), 500
 
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
