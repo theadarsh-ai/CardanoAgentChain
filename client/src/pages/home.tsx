@@ -1,7 +1,6 @@
 import HeroSection from "@/components/hero-section";
 import MetricsGrid from "@/components/metrics-grid";
 import AgentCard from "@/components/agent-card";
-import AgentDemo from "@/components/agent-demo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -55,11 +54,6 @@ export default function Home() {
   return (
     <div className="space-y-8">
       <HeroSection />
-
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">See Agents in Action</h2>
-        <AgentDemo />
-      </div>
 
       <div>
         <h2 className="text-2xl font-semibold mb-4">Key Metrics</h2>
