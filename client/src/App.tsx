@@ -11,6 +11,7 @@ import Marketplace from "@/pages/marketplace";
 import Chat from "@/pages/chat";
 import Architecture from "@/pages/architecture";
 import Logs from "@/pages/logs";
+import AgentPage from "@/pages/agent";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/chat" component={Chat} />
       <Route path="/architecture" component={Architecture} />
       <Route path="/logs" component={Logs} />
+      <Route path="/agents/:agentName" component={AgentPage} />
       <Route component={NotFound} />
     </Switch>
   );

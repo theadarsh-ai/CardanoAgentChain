@@ -43,4 +43,5 @@ externalPort = 3000
 
 [deployment]
 deploymentTarget = "vm"
-run = ["bash", "-c", "uv run --no-sync gunicorn --workers 2 --bind 0.0.0.0:5001 --chdir python_backend app:app & npm start"]
+run = ["npm", "run", "start"]
+build = ["npm", "run", "build"]
