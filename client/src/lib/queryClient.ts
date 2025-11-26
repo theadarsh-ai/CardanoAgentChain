@@ -7,6 +7,27 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+function toCamelCase(str: string): string {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+function transformKeys(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(transformKeys);
+  }
+  if (obj !== null && typeof obj === "object") {
+    const result: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const camelKey = toCamelCase(key);
+        result[camelKey] = transformKeys(obj[key]);
+      }
+    }
+    return result;
+  }
+  return obj;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -38,7 +59,8 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    const data = await res.json();
+    return transformKeys(data);
   };
 
 export const queryClient = new QueryClient({
