@@ -32,3 +32,15 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3001
+
+[[ports]]
+localPort = 46137
+externalPort = 3000
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bash", "-c", "uv run --no-sync gunicorn --workers 2 --bind 0.0.0.0:5001 --chdir python_backend app:app & npm start"]
