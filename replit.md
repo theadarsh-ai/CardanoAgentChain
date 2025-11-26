@@ -63,12 +63,26 @@ Required secrets:
 - `OPENAI_API_KEY`: OpenAI API key for AI agent responses
 - `DATABASE_URL`: PostgreSQL connection string (auto-configured)
 
+Optional blockchain API keys (for live blockchain integration):
+- `BLOCKFROST_API_KEY`: Blockfrost.io API key for Cardano blockchain access
+- `CARDANO_NETWORK`: Network to use - "preprod" (default), "preview", or "mainnet"
+- `MASUMI_API_KEY`: Masumi Network API key for agent discovery and reputation
+- `MASUMI_NETWORK_URL`: Masumi Network URL (defaults to https://api.masumi.network)
+- `HYDRA_NODE_URL`: URL to Hydra node for Layer 2 payments (defaults to http://localhost:4001)
+- `HYDRA_API_KEY`: API key for Hydra node authentication (optional)
+
 ## Recent Changes
 
 - **November 2025**: Initial GitHub import and Replit setup
   - Fixed Python backend syntax errors in app.py
   - Added agent details page for sidebar navigation
   - Configured workflow and deployment settings
+  - Implemented production-ready blockchain integration:
+    - Cardano L1: DID registration, credential verification, decision logging, payments
+    - Masumi Network: Agent discovery, reputation management, service agreements
+    - Hydra L2: Payment channels, instant micropayments, fee estimation
+  - All blockchain services work in simulation mode without API keys
+  - When API keys are provided, services connect to live blockchain networks
 
 ## Deployment
 

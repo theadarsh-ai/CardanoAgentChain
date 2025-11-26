@@ -4,9 +4,10 @@ Handles agent discovery, service registry, and reputation management
 """
 import os
 import json
+import requests
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 
 @dataclass
@@ -27,248 +28,335 @@ class MasumiService:
     """Service for interacting with Masumi Network"""
 
     def __init__(self):
-        self.network_url = os.environ.get("MASUMI_NETWORK_URL",
-                                          "https://masumi-testnet.io")
+        self.network_url = os.environ.get("MASUMI_NETWORK_URL", "https://api.masumi.network")
         self.api_key = os.environ.get("MASUMI_API_KEY", "")
-        # Local cache of registered agents
+        self._is_live = bool(self.api_key)
         self._agent_registry: Dict[str, MasumiAgent] = {}
 
-    async def register_agent(self, agent_id: str, name: str, domain: str,
-                             services: List[str],
-                             metadata: Dict[str, Any]) -> Dict[str, Any]:
+    def _get_headers(self) -> Dict[str, str]:
+        """Get API headers with authentication"""
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+    def _api_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Optional[Dict]:
+        """Make authenticated request to Masumi API"""
+        if not self._is_live:
+            return None
+        
+        url = f"{self.network_url}{endpoint}"
+        try:
+            if method == "GET":
+                response = requests.get(url, headers=self._get_headers(), timeout=30)
+            elif method == "POST":
+                response = requests.post(url, headers=self._get_headers(), json=data, timeout=30)
+            elif method == "PUT":
+                response = requests.put(url, headers=self._get_headers(), json=data, timeout=30)
+            else:
+                return None
+            
+            if response.status_code in [200, 201]:
+                return response.json()
+            else:
+                print(f"Masumi API error: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            print(f"Masumi API request failed: {e}")
+            return None
+
+    def is_live(self) -> bool:
+        """Check if service is connected to real Masumi Network"""
+        return self._is_live
+
+    def register_agent(self, agent_id: str, name: str, domain: str,
+                       services: List[str], metadata: Dict[str, Any]) -> Dict[str, Any]:
         """
         Register an agent on Masumi Network for discoverability
-        This makes the agent searchable in the marketplace
         """
-        # In production:
-        # 1. Submit agent profile to Masumi registry
-        # 2. Create verifiable credentials
-        # 3. Link to Cardano DID
-        # 4. Return registration confirmation
-
         did = f"did:masumi:{agent_id}"
+        
+        agent = MasumiAgent(
+            did=did,
+            name=name,
+            domain=domain,
+            services=services,
+            reputation_score=100.0,
+            total_transactions=0,
+            average_response_time=1000,
+            registered_at=datetime.now().isoformat(),
+            is_verified=True
+        )
 
-        agent = MasumiAgent(did=did,
-                            name=name,
-                            domain=domain,
-                            services=services,
-                            reputation_score=100.0,
-                            total_transactions=0,
-                            average_response_time=1000,
-                            registered_at=datetime.now().isoformat(),
-                            is_verified=True)
-
-        self._agent_registry[agent_id] = agent
-
-        return {
+        result = {
             "did": did,
             "name": name,
             "domain": domain,
             "services": services,
             "registered_at": agent.registered_at,
-            "registry_url": f"{self.network_url}/agents/{agent_id}",
-            "status": "active"
+            "is_simulated": not self._is_live
         }
 
-    async def discover_agents(
-            self,
-            domain: Optional[str] = None,
-            service: Optional[str] = None,
-            min_reputation: float = 0.0) -> List[Dict[str, Any]]:
+        if self._is_live:
+            api_result = self._api_request("POST", "/agents/register", {
+                "agent_id": agent_id,
+                "name": name,
+                "domain": domain,
+                "services": services,
+                "metadata": metadata
+            })
+            if api_result:
+                result["registry_url"] = api_result.get("registry_url", f"{self.network_url}/agents/{agent_id}")
+                result["status"] = "registered"
+                result["message"] = "Agent registered on Masumi Network"
+            else:
+                self._agent_registry[agent_id] = agent
+                result["status"] = "pending"
+                result["message"] = "Registration submitted, awaiting confirmation"
+        else:
+            self._agent_registry[agent_id] = agent
+            result["registry_url"] = f"{self.network_url}/agents/{agent_id}"
+            result["status"] = "simulated"
+            result["message"] = "Simulated - provide MASUMI_API_KEY for live network"
+
+        return result
+
+    def discover_agents(self, domain: Optional[str] = None,
+                        service: Optional[str] = None,
+                        min_reputation: float = 0.0) -> Dict[str, Any]:
         """
         Discover available agents on Masumi Network
-        Search by domain, service type, or reputation
         """
-        # In production: Query Masumi registry API with filters
-
-        agents = []
-        for agent in self._agent_registry.values():
-            # Apply filters
-            if domain and agent.domain != domain:
-                continue
-            if service and service not in agent.services:
-                continue
-            if agent.reputation_score < min_reputation:
-                continue
-
-            agents.append({
-                "did": agent.did,
-                "name": agent.name,
-                "domain": agent.domain,
-                "services": agent.services,
-                "reputation_score": agent.reputation_score,
-                "total_transactions": agent.total_transactions,
-                "average_response_time": agent.average_response_time,
-                "is_verified": agent.is_verified
-            })
-
-        return agents
-
-    async def get_agent_profile(self, did: str) -> Optional[Dict[str, Any]]:
-        """
-        Get detailed profile for a specific agent from Masumi Network
-        """
-        # In production: GET from Masumi API /agents/{did}
-
-        agent_id = did.split(":")[-1]
-        agent = self._agent_registry.get(agent_id)
-
-        if not agent:
-            return None
-
-        return {
-            "did":
-            agent.did,
-            "name":
-            agent.name,
-            "domain":
-            agent.domain,
-            "services":
-            agent.services,
-            "reputation_score":
-            agent.reputation_score,
-            "total_transactions":
-            agent.total_transactions,
-            "average_response_time":
-            agent.average_response_time,
-            "registered_at":
-            agent.registered_at,
-            "is_verified":
-            agent.is_verified,
-            "verifiable_credentials": [{
-                "type": "ServiceProvider",
-                "issuer": "did:masumi:registry",
-                "issued_at": agent.registered_at
-            }]
+        result = {
+            "query": {
+                "domain": domain,
+                "service": service,
+                "min_reputation": min_reputation
+            },
+            "is_simulated": not self._is_live
         }
 
-    async def update_reputation(self, agent_did: str,
-                                transaction_success: bool,
-                                response_time: int) -> Dict[str, Any]:
+        if self._is_live:
+            params = {}
+            if domain:
+                params["domain"] = domain
+            if service:
+                params["service"] = service
+            if min_reputation > 0:
+                params["min_reputation"] = min_reputation
+            
+            api_result = self._api_request("GET", f"/agents/discover?{'&'.join(f'{k}={v}' for k, v in params.items())}")
+            if api_result:
+                result["agents"] = api_result.get("agents", [])
+                result["total"] = api_result.get("total", 0)
+                result["status"] = "success"
+            else:
+                result["agents"] = []
+                result["total"] = 0
+                result["status"] = "error"
+        else:
+            agents = []
+            for agent in self._agent_registry.values():
+                if domain and agent.domain != domain:
+                    continue
+                if service and service not in agent.services:
+                    continue
+                if agent.reputation_score < min_reputation:
+                    continue
+
+                agents.append({
+                    "did": agent.did,
+                    "name": agent.name,
+                    "domain": agent.domain,
+                    "services": agent.services,
+                    "reputation_score": agent.reputation_score,
+                    "total_transactions": agent.total_transactions,
+                    "average_response_time": agent.average_response_time,
+                    "is_verified": agent.is_verified
+                })
+
+            result["agents"] = agents
+            result["total"] = len(agents)
+            result["status"] = "simulated"
+
+        return result
+
+    def get_agent_profile(self, did: str) -> Dict[str, Any]:
+        """
+        Get detailed profile for a specific agent
+        """
+        result = {
+            "did": did,
+            "is_simulated": not self._is_live
+        }
+
+        if self._is_live:
+            agent_id = did.split(":")[-1]
+            api_result = self._api_request("GET", f"/agents/{agent_id}")
+            if api_result:
+                result.update(api_result)
+                result["status"] = "success"
+            else:
+                result["status"] = "not_found"
+        else:
+            agent_id = did.split(":")[-1]
+            agent = self._agent_registry.get(agent_id)
+
+            if agent:
+                result["name"] = agent.name
+                result["domain"] = agent.domain
+                result["services"] = agent.services
+                result["reputation_score"] = agent.reputation_score
+                result["total_transactions"] = agent.total_transactions
+                result["average_response_time"] = agent.average_response_time
+                result["registered_at"] = agent.registered_at
+                result["is_verified"] = agent.is_verified
+                result["status"] = "simulated"
+            else:
+                result["status"] = "not_found"
+
+        return result
+
+    def update_reputation(self, agent_did: str, transaction_success: bool,
+                          response_time: int) -> Dict[str, Any]:
         """
         Update agent reputation based on transaction outcome
-        Called after each agent interaction
         """
-        agent_id = agent_did.split(":")[-1]
-        agent = self._agent_registry.get(agent_id)
-
-        if not agent:
-            return {"error": "Agent not found"}
-
-        # Update reputation algorithm
-        if transaction_success:
-            # Increase reputation (max 100)
-            agent.reputation_score = min(100.0, agent.reputation_score + 0.1)
-        else:
-            # Decrease reputation
-            agent.reputation_score = max(0.0, agent.reputation_score - 1.0)
-
-        # Update average response time (exponential moving average)
-        alpha = 0.1
-        agent.average_response_time = int(alpha * response_time + (1 - alpha) *
-                                          agent.average_response_time)
-
-        agent.total_transactions += 1
-
-        return {
+        result = {
             "did": agent_did,
-            "reputation_score": agent.reputation_score,
-            "total_transactions": agent.total_transactions,
-            "average_response_time": agent.average_response_time,
-            "updated_at": datetime.now().isoformat()
+            "updated_at": datetime.now().isoformat(),
+            "is_simulated": not self._is_live
         }
 
-    async def create_service_agreement(
-            self, provider_did: str, consumer_did: str, service_type: str,
-            terms: Dict[str, Any]) -> Dict[str, Any]:
+        if self._is_live:
+            api_result = self._api_request("PUT", f"/agents/{agent_did.split(':')[-1]}/reputation", {
+                "transaction_success": transaction_success,
+                "response_time": response_time
+            })
+            if api_result:
+                result["reputation_score"] = api_result.get("reputation_score", 0)
+                result["total_transactions"] = api_result.get("total_transactions", 0)
+                result["status"] = "updated"
+            else:
+                result["status"] = "error"
+        else:
+            agent_id = agent_did.split(":")[-1]
+            agent = self._agent_registry.get(agent_id)
+
+            if agent:
+                if transaction_success:
+                    agent.reputation_score = min(100.0, agent.reputation_score + 0.1)
+                else:
+                    agent.reputation_score = max(0.0, agent.reputation_score - 1.0)
+
+                alpha = 0.1
+                agent.average_response_time = int(alpha * response_time + (1 - alpha) * agent.average_response_time)
+                agent.total_transactions += 1
+
+                result["reputation_score"] = agent.reputation_score
+                result["total_transactions"] = agent.total_transactions
+                result["average_response_time"] = agent.average_response_time
+                result["status"] = "simulated"
+            else:
+                result["status"] = "not_found"
+
+        return result
+
+    def create_service_agreement(self, provider_did: str, consumer_did: str,
+                                 service_type: str, terms: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a verifiable service agreement between agents
-        Stored on Masumi Network and referenced on Cardano
         """
         agreement_id = f"agreement_{datetime.now().timestamp()}"
 
-        agreement = {
+        result = {
             "agreement_id": agreement_id,
             "provider_did": provider_did,
             "consumer_did": consumer_did,
             "service_type": service_type,
             "terms": terms,
             "created_at": datetime.now().isoformat(),
-            "status": "active",
-            "masumi_url": f"{self.network_url}/agreements/{agreement_id}"
+            "is_simulated": not self._is_live
         }
 
-        return agreement
+        if self._is_live:
+            api_result = self._api_request("POST", "/agreements", {
+                "provider_did": provider_did,
+                "consumer_did": consumer_did,
+                "service_type": service_type,
+                "terms": terms
+            })
+            if api_result:
+                result["agreement_id"] = api_result.get("agreement_id", agreement_id)
+                result["masumi_url"] = api_result.get("url", f"{self.network_url}/agreements/{agreement_id}")
+                result["status"] = "active"
+            else:
+                result["status"] = "error"
+        else:
+            result["masumi_url"] = f"{self.network_url}/agreements/{agreement_id}"
+            result["status"] = "simulated"
 
-    async def resolve_did(self, did: str) -> Optional[Dict[str, Any]]:
+        return result
+
+    def resolve_did(self, did: str) -> Dict[str, Any]:
         """
         Resolve a DID to its DID Document
-        Returns public keys, service endpoints, etc.
         """
-        # In production: Follow DID resolution spec
-        # Query Masumi registry or Cardano for DID Document
+        result = {
+            "did": did,
+            "is_simulated": not self._is_live
+        }
 
-        return {
-            "@context":
-            "https://www.w3.org/ns/did/v1",
-            "id":
-            did,
-            "verificationMethod": [{
+        if self._is_live:
+            api_result = self._api_request("GET", f"/did/{did}")
+            if api_result:
+                result.update(api_result)
+                result["status"] = "resolved"
+            else:
+                result["status"] = "not_found"
+        else:
+            result["@context"] = "https://www.w3.org/ns/did/v1"
+            result["verificationMethod"] = [{
                 "id": f"{did}#key-1",
                 "type": "Ed25519VerificationKey2020",
                 "controller": did,
                 "publicKeyMultibase": "z6Mk..."
-            }],
-            "service": [{
-                "id":
-                f"{did}#agent-service",
-                "type":
-                "AgentService",
-                "serviceEndpoint":
-                f"{self.network_url}/agents/{did.split(':')[-1]}"
             }]
+            result["service"] = [{
+                "id": f"{did}#agent-service",
+                "type": "AgentService",
+                "serviceEndpoint": f"{self.network_url}/agents/{did.split(':')[-1]}"
+            }]
+            result["status"] = "simulated"
+
+        return result
+
+    def get_network_status(self) -> Dict[str, Any]:
+        """
+        Get Masumi Network status
+        """
+        result = {
+            "network_url": self.network_url,
+            "is_simulated": not self._is_live
         }
 
-    async def verify_service_credential(self, credential: Dict[str,
-                                                               Any]) -> bool:
-        """
-        Verify a service credential issued by Masumi Network
-        """
-        # In production:
-        # 1. Check credential signature
-        # 2. Verify issuer DID
-        # 3. Check revocation status
-        # 4. Validate expiration
+        if self._is_live:
+            api_result = self._api_request("GET", "/status")
+            if api_result:
+                result["version"] = api_result.get("version", "")
+                result["total_agents"] = api_result.get("total_agents", 0)
+                result["total_transactions"] = api_result.get("total_transactions", 0)
+                result["status"] = "connected"
+            else:
+                result["status"] = "connection_error"
+        else:
+            result["version"] = "1.0.0-simulated"
+            result["total_agents"] = len(self._agent_registry)
+            result["total_transactions"] = sum(a.total_transactions for a in self._agent_registry.values())
+            result["status"] = "simulated"
+            result["message"] = "Provide MASUMI_API_KEY to connect to live network"
 
-        required_fields = ["type", "issuer", "issued_at"]
-        return all(field in credential for field in required_fields)
-
-    async def search_services(
-            self,
-            query: str,
-            filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """
-        Search for agents by service capabilities
-        Natural language search across Masumi Network
-        """
-        # In production: Full-text search on Masumi registry
-
-        results = []
-        for agent in self._agent_registry.values():
-            # Simple keyword matching (replace with proper search)
-            if query.lower() in agent.name.lower() or \
-               query.lower() in agent.domain.lower() or \
-               any(query.lower() in service.lower() for service in agent.services):
-                results.append({
-                    "did": agent.did,
-                    "name": agent.name,
-                    "domain": agent.domain,
-                    "services": agent.services,
-                    "reputation_score": agent.reputation_score
-                })
-
-        return results
+        return result
 
 
-# Singleton instance
 masumi_service = MasumiService()

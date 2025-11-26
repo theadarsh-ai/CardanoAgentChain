@@ -227,6 +227,45 @@ def chat():
 
 # Blockchain Integration Endpoints
 
+@app.route('/api/blockchain/status', methods=['GET'])
+def get_blockchain_status():
+    """Get status of all blockchain integrations"""
+    try:
+        return jsonify({
+            "cardano": {
+                "is_live": cardano_service.is_live(),
+                "network": cardano_service.network,
+                "requires": "BLOCKFROST_API_KEY"
+            },
+            "masumi": {
+                "is_live": masumi_service.is_live(),
+                "network_url": masumi_service.network_url,
+                "requires": "MASUMI_API_KEY"
+            },
+            "hydra": {
+                "is_live": hydra_service.is_live(),
+                "node_url": hydra_service.hydra_node_url,
+                "requires": "HYDRA_NODE_URL or HYDRA_API_KEY"
+            }
+        })
+    except Exception as e:
+        print(f"Error getting blockchain status: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/cardano/status', methods=['GET'])
+def get_cardano_status():
+    """Get Cardano network status"""
+    try:
+        network_info = cardano_service.get_network_info()
+        latest_block = cardano_service.get_latest_block()
+        return jsonify({
+            "network": network_info,
+            "latest_block": latest_block
+        })
+    except Exception as e:
+        print(f"Error getting Cardano status: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/blockchain/cardano/register-agent', methods=['POST'])
 def register_agent_on_cardano():
     """Register an agent on Cardano blockchain with DID"""
@@ -236,11 +275,100 @@ def register_agent_on_cardano():
         agent_name = data.get("agentName")
         metadata = data.get("metadata", {})
 
-        # Note: Async operations would need proper async framework setup
-        # For now, returning mock response
-        return jsonify({"success": True, "message": "Agent registration simulated"})
+        result = cardano_service.register_agent_did(agent_id, agent_name, metadata)
+        return jsonify(result)
     except Exception as e:
         print(f"Error registering agent: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/cardano/verify', methods=['POST'])
+def verify_agent_on_cardano():
+    """Verify an agent's credentials on Cardano"""
+    try:
+        data = request.get_json()
+        did = data.get("did")
+        
+        result = cardano_service.verify_agent_credentials(did)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error verifying agent: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/cardano/log-decision', methods=['POST'])
+def log_decision_on_cardano():
+    """Log a decision on Cardano blockchain"""
+    try:
+        data = request.get_json()
+        agent_id = data.get("agentId")
+        decision = data.get("decision")
+        details = data.get("details", {})
+        
+        result = cardano_service.log_decision_on_chain(agent_id, decision, details)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error logging decision: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/cardano/settle-payment', methods=['POST'])
+def settle_payment_on_cardano():
+    """Settle a payment on Cardano L1"""
+    try:
+        data = request.get_json()
+        from_agent = data.get("fromAgent")
+        to_agent = data.get("toAgent")
+        amount = float(data.get("amount", 0))
+        
+        result = cardano_service.settle_payment(from_agent, to_agent, amount)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error settling payment: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/cardano/wallet/<address>', methods=['GET'])
+def get_cardano_wallet(address):
+    """Get wallet balance on Cardano"""
+    try:
+        result = cardano_service.get_wallet_balance(address)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting wallet: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/cardano/transaction/<tx_hash>', methods=['GET'])
+def get_cardano_transaction(tx_hash):
+    """Get transaction details from Cardano"""
+    try:
+        result = cardano_service.get_transaction(tx_hash)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting transaction: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/masumi/status', methods=['GET'])
+def get_masumi_status():
+    """Get Masumi Network status"""
+    try:
+        result = masumi_service.get_network_status()
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting Masumi status: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/masumi/register', methods=['POST'])
+def register_agent_on_masumi():
+    """Register an agent on Masumi Network"""
+    try:
+        data = request.get_json()
+        agent_id = data.get("agentId")
+        name = data.get("name")
+        domain = data.get("domain")
+        services = data.get("services", [])
+        metadata = data.get("metadata", {})
+        
+        result = masumi_service.register_agent(agent_id, name, domain, services, metadata)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error registering on Masumi: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/blockchain/masumi/discover', methods=['GET'])
@@ -251,11 +379,61 @@ def discover_agents_masumi():
         service = request.args.get("service")
         min_reputation = float(request.args.get("minReputation", 0.0))
 
-        # Note: Async operations would need proper async framework setup
-        # For now, returning mock response
-        return jsonify([])
+        result = masumi_service.discover_agents(domain, service, min_reputation)
+        return jsonify(result)
     except Exception as e:
         print(f"Error discovering agents: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/masumi/agent/<did>', methods=['GET'])
+def get_masumi_agent(did):
+    """Get agent profile from Masumi Network"""
+    try:
+        result = masumi_service.get_agent_profile(did)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting agent: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/masumi/reputation', methods=['POST'])
+def update_masumi_reputation():
+    """Update agent reputation on Masumi"""
+    try:
+        data = request.get_json()
+        agent_did = data.get("agentDid")
+        transaction_success = data.get("transactionSuccess", True)
+        response_time = int(data.get("responseTime", 1000))
+        
+        result = masumi_service.update_reputation(agent_did, transaction_success, response_time)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error updating reputation: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/masumi/agreement', methods=['POST'])
+def create_masumi_agreement():
+    """Create service agreement on Masumi"""
+    try:
+        data = request.get_json()
+        provider_did = data.get("providerDid")
+        consumer_did = data.get("consumerDid")
+        service_type = data.get("serviceType")
+        terms = data.get("terms", {})
+        
+        result = masumi_service.create_service_agreement(provider_did, consumer_did, service_type, terms)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error creating agreement: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/hydra/status', methods=['GET'])
+def get_hydra_status():
+    """Get Hydra node status"""
+    try:
+        result = hydra_service.get_node_status()
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting Hydra status: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/blockchain/hydra/open-channel', methods=['POST'])
@@ -263,9 +441,13 @@ def open_hydra_channel():
     """Open a Hydra payment channel between agents"""
     try:
         data = request.get_json()
-        # Note: Async operations would need proper async framework setup
-        # For now, returning mock response
-        return jsonify({"success": True, "channelId": "mock-channel-id"})
+        result = hydra_service.open_channel(
+            participant_a=data.get("participantA"),
+            participant_b=data.get("participantB"),
+            initial_balance_a=float(data.get("balanceA", 100.0)),
+            initial_balance_b=float(data.get("balanceB", 100.0))
+        )
+        return jsonify(result)
     except Exception as e:
         print(f"Error opening channel: {e}")
         return jsonify({"error": str(e)}), 500
@@ -275,11 +457,63 @@ def send_hydra_payment():
     """Send instant micropayment through Hydra"""
     try:
         data = request.get_json()
-        # Note: Async operations would need proper async framework setup
-        # For now, returning mock response
-        return jsonify({"success": True, "txHash": "mock-tx-hash"})
+        result = hydra_service.send_payment(
+            channel_id=data.get("channelId"),
+            from_agent=data.get("from"),
+            to_agent=data.get("to"),
+            amount=float(data.get("amount", 0.004))
+        )
+        return jsonify(result)
     except Exception as e:
         print(f"Error sending payment: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/hydra/close-channel', methods=['POST'])
+def close_hydra_channel():
+    """Close a Hydra channel and settle on L1"""
+    try:
+        data = request.get_json()
+        channel_id = data.get("channelId")
+        
+        result = hydra_service.close_channel(channel_id)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error closing channel: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/hydra/channel/<channel_id>', methods=['GET'])
+def get_hydra_channel(channel_id):
+    """Get Hydra channel status"""
+    try:
+        result = hydra_service.get_channel_status(channel_id)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting channel: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/hydra/transactions', methods=['GET'])
+def get_hydra_transactions():
+    """Get Hydra transaction history"""
+    try:
+        channel_id = request.args.get("channelId")
+        limit = int(request.args.get("limit", 20))
+        
+        result = hydra_service.get_transaction_history(channel_id, limit)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting transactions: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/hydra/estimate-fees', methods=['GET'])
+def estimate_hydra_fees():
+    """Estimate Hydra transaction fees"""
+    try:
+        num_transactions = int(request.args.get("numTransactions", 100))
+        
+        result = hydra_service.estimate_fees(num_transactions)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error estimating fees: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/transactions', methods=['GET'])
