@@ -62,7 +62,7 @@
 ## Visual Elements
 
 **Blockchain Credibility**:
-- Gradient accents (green) for blockchain-specific features
+- Gradient accents (purple-to-pink) for blockchain-specific features
 - Masumi DID verified badges (checkmark icon in circle)
 - Hydra lightning icon for L2 transactions
 - Cardano logo/branding in footer

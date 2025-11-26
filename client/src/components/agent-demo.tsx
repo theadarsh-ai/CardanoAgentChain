@@ -18,18 +18,32 @@ export default function AgentDemo() {
   const [selectedDemo, setSelectedDemo] = useState<string | null>(null);
   const [demoResponse, setDemoResponse] = useState<string>("");
 
-  const { data: transactions = [] } = useQuery<Transaction[]>({
+  const { data: transactions, refetch: refetchTransactions } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
     refetchInterval: 3000,
   });
 
+  const { data: convId, isLoading: creatingConv } = useQuery<{ id: string }>({
+    queryKey: ["demo-conversation"],
+    queryFn: async () => {
+      if (!selectedDemo) return { id: "" };
+      const response = await apiRequest("POST", "/api/conversations", {
+        title: "Agent Demo - " + selectedDemo,
+      });
+      return response.json();
+    },
+    enabled: false,
+  });
+
   const demoMutation = useMutation({
     mutationFn: async ({ agent, query }: { agent: string; query: string }) => {
+      // Create conversation first
       const convResponse = await apiRequest("POST", "/api/conversations", {
         title: `Agent Demo - ${agent}`,
       });
       const conversation = await convResponse.json();
 
+      // Send message to agent
       const response = await apiRequest("POST", "/api/chat", {
         conversationId: conversation.id,
         message: query,
@@ -39,7 +53,7 @@ export default function AgentDemo() {
     },
     onSuccess: (data) => {
       setDemoResponse(data.agentMessage.content);
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      refetchTransactions();
     },
   });
 
@@ -49,11 +63,11 @@ export default function AgentDemo() {
     demoMutation.mutate({ agent, query });
   };
 
-  const recentTransactions = (transactions || []).slice(0, 5);
+  const recentTransactions = transactions?.slice(0, 5) || [];
 
   return (
     <div className="space-y-6">
-      <Card className="border-2 border-primary" data-testid="card-agent-demo">
+      <Card className="border-2 border-gradient-to-r from-purple-500 to-pink-500" data-testid="card-agent-demo">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -94,7 +108,7 @@ export default function AgentDemo() {
                   <Sparkles className="h-3 w-3 mr-1" />
                   {selectedDemo}
                 </Badge>
-                {!demoMutation.isPending && demoResponse && <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />}
+                {!demoMutation.isPending && <CheckCircle2 className="h-4 w-4 text-green-500" />}
               </div>
               {demoMutation.isPending && (
                 <div className="p-4 bg-muted rounded-lg">
@@ -138,10 +152,10 @@ export default function AgentDemo() {
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="font-mono text-xs bg-background px-2 py-1 rounded truncate">
-                      {(tx.txHash || tx.tx_hash || 'N/A').substring(0, 12)}...
+                      {tx.txHash}
                     </span>
-                    <span className="truncate text-muted-foreground text-xs">
-                      {(tx.fromAgentName || tx.from_agent_name || 'User')} → {(tx.toAgentName || tx.to_agent_name || 'Agent')}
+                    <span className="truncate text-muted-foreground">
+                      {tx.fromAgentName} → {tx.toAgentName}
                     </span>
                   </div>
                   <Badge variant="secondary" className="shrink-0">

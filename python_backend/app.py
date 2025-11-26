@@ -1,6 +1,5 @@
 import os
 import json
-import uuid
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -20,9 +19,6 @@ from models import (
 )
 from agents import seed_agents, get_master_agent_prompt, AGENT_DEFINITIONS
 from openai_service import get_agent_response, analyze_user_request
-from cardano_service import cardano_service
-from masumi_service import masumi_service
-from hydra_service import hydra_service
 
 app = Flask(__name__)
 CORS(app)
@@ -225,89 +221,6 @@ def chat():
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"Failed to process chat message: {str(e)}"}), 500
-
-# Blockchain Integration Endpoints
-
-@app.route('/api/blockchain/cardano/register-agent', methods=['POST'])
-def register_agent_on_cardano():
-    """Register an agent on Cardano blockchain with DID"""
-    # Note: Flask doesn't support async/await natively, these would need flask-async or background tasks
-    # For now, returning mock data
-    try:
-        data = request.get_json()
-        agent_id = data.get("agentId")
-        agent_name = data.get("agentName")
-        metadata = data.get("metadata", {})
-        
-        result = {
-            "did": f"did:cardano:testnet:{agent_id}",
-            "agent_id": agent_id,
-            "agent_name": agent_name,
-            "metadata": metadata,
-            "status": "registered",
-            "tx_hash": generate_tx_hash()
-        }
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error registering agent: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/blockchain/masumi/discover', methods=['GET'])
-def discover_agents_masumi():
-    """Discover agents on Masumi Network"""
-    try:
-        domain = request.args.get("domain")
-        min_reputation = float(request.args.get("minReputation", 0.0))
-        
-        agents = AgentModel.get_all()
-        filtered = [a for a in agents if not domain or a.get("domain") == domain]
-        
-        return jsonify([{
-            "did": f"did:masumi:{a['id']}",
-            "name": a["name"],
-            "domain": a["domain"],
-            "reputation_score": 95.0,
-            "is_verified": a["is_verified"]
-        } for a in filtered])
-    except Exception as e:
-        print(f"Error discovering agents: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/blockchain/hydra/open-channel', methods=['POST'])
-def open_hydra_channel():
-    """Open a Hydra payment channel between agents"""
-    try:
-        data = request.get_json()
-        
-        result = {
-            "channel_id": str(uuid.uuid4()),
-            "participants": [data.get("participantA"), data.get("participantB")],
-            "status": "open",
-            "tx_hash": generate_tx_hash()
-        }
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error opening channel: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/blockchain/hydra/payment', methods=['POST'])
-def send_hydra_payment():
-    """Send instant micropayment through Hydra"""
-    try:
-        data = request.get_json()
-        
-        result = {
-            "tx_hash": truncate_tx_hash(generate_tx_hash()),
-            "from": data.get("from"),
-            "to": data.get("to"),
-            "amount": data.get("amount", 0.004),
-            "status": "confirmed",
-            "finality_time": "<1s"
-        }
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error sending payment: {e}")
-        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
