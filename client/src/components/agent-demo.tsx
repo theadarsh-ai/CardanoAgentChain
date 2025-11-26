@@ -138,10 +138,10 @@ export default function AgentDemo() {
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="font-mono text-xs bg-background px-2 py-1 rounded truncate">
-                      {tx.txHash}
+                      {(tx.txHash || tx.tx_hash || 'N/A').substring(0, 12)}...
                     </span>
-                    <span className="truncate text-muted-foreground">
-                      {tx.fromAgentName} → {tx.toAgentName}
+                    <span className="truncate text-muted-foreground text-xs">
+                      {(tx.fromAgentName || tx.from_agent_name || 'User')} → {(tx.toAgentName || tx.to_agent_name || 'Agent')}
                     </span>
                   </div>
                   <Badge variant="secondary" className="shrink-0">
