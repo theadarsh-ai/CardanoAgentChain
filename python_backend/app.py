@@ -19,6 +19,9 @@ from models import (
 )
 from agents import seed_agents, get_master_agent_prompt, AGENT_DEFINITIONS
 from openai_service import get_agent_response, analyze_user_request
+from cardano_service import cardano_service
+from masumi_service import masumi_service
+from hydra_service import hydra_service
 
 app = Flask(__name__)
 CORS(app)
@@ -214,6 +217,71 @@ def chat():
         return jsonify({
             "userMessage": serialize_record(user_message),
             "agentMessage": serialize_record(agent_message),
+
+
+# Blockchain Integration Endpoints
+
+@app.route('/api/blockchain/cardano/register-agent', methods=['POST'])
+async def register_agent_on_cardano():
+    """Register an agent on Cardano blockchain with DID"""
+    try:
+        data = request.get_json()
+        agent_id = data.get("agentId")
+        agent_name = data.get("agentName")
+        metadata = data.get("metadata", {})
+        
+        result = await cardano_service.register_agent_did(agent_id, agent_name, metadata)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error registering agent: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/masumi/discover', methods=['GET'])
+async def discover_agents_masumi():
+    """Discover agents on Masumi Network"""
+    try:
+        domain = request.args.get("domain")
+        service = request.args.get("service")
+        min_reputation = float(request.args.get("minReputation", 0.0))
+        
+        agents = await masumi_service.discover_agents(domain, service, min_reputation)
+        return jsonify(agents)
+    except Exception as e:
+        print(f"Error discovering agents: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/hydra/open-channel', methods=['POST'])
+async def open_hydra_channel():
+    """Open a Hydra payment channel between agents"""
+    try:
+        data = request.get_json()
+        result = await hydra_service.open_channel(
+            participant_a=data.get("participantA"),
+            participant_b=data.get("participantB"),
+            initial_balance_a=float(data.get("balanceA", 100.0)),
+            initial_balance_b=float(data.get("balanceB", 100.0))
+        )
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error opening channel: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/hydra/payment', methods=['POST'])
+async def send_hydra_payment():
+    """Send instant micropayment through Hydra"""
+    try:
+        data = request.get_json()
+        result = await hydra_service.send_payment(
+            channel_id=data.get("channelId"),
+            from_agent=data.get("from"),
+            to_agent=data.get("to"),
+            amount=float(data.get("amount", 0.004))
+        )
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error sending payment: {e}")
+        return jsonify({"error": str(e)}), 500
+
             "selectedAgent": response_agent_name
         })
     except Exception as e:
