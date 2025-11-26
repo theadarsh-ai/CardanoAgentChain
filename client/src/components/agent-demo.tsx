@@ -18,32 +18,18 @@ export default function AgentDemo() {
   const [selectedDemo, setSelectedDemo] = useState<string | null>(null);
   const [demoResponse, setDemoResponse] = useState<string>("");
 
-  const { data: transactions, refetch: refetchTransactions } = useQuery<Transaction[]>({
+  const { data: transactions = [] } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
     refetchInterval: 3000,
   });
 
-  const { data: convId, isLoading: creatingConv } = useQuery<{ id: string }>({
-    queryKey: ["demo-conversation"],
-    queryFn: async () => {
-      if (!selectedDemo) return { id: "" };
-      const response = await apiRequest("POST", "/api/conversations", {
-        title: "Agent Demo - " + selectedDemo,
-      });
-      return response.json();
-    },
-    enabled: false,
-  });
-
   const demoMutation = useMutation({
     mutationFn: async ({ agent, query }: { agent: string; query: string }) => {
-      // Create conversation first
       const convResponse = await apiRequest("POST", "/api/conversations", {
         title: `Agent Demo - ${agent}`,
       });
       const conversation = await convResponse.json();
 
-      // Send message to agent
       const response = await apiRequest("POST", "/api/chat", {
         conversationId: conversation.id,
         message: query,
@@ -53,7 +39,7 @@ export default function AgentDemo() {
     },
     onSuccess: (data) => {
       setDemoResponse(data.agentMessage.content);
-      refetchTransactions();
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
     },
   });
 
@@ -63,7 +49,7 @@ export default function AgentDemo() {
     demoMutation.mutate({ agent, query });
   };
 
-  const recentTransactions = transactions?.slice(0, 5) || [];
+  const recentTransactions = (transactions || []).slice(0, 5);
 
   return (
     <div className="space-y-6">
