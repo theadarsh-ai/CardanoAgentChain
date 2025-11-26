@@ -53,7 +53,7 @@ export default function AgentDemo() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-2 border-gradient-to-r from-purple-500 to-pink-500" data-testid="card-agent-demo">
+      <Card className="border-2 border-primary" data-testid="card-agent-demo">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -94,7 +94,7 @@ export default function AgentDemo() {
                   <Sparkles className="h-3 w-3 mr-1" />
                   {selectedDemo}
                 </Badge>
-                {!demoMutation.isPending && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                {!demoMutation.isPending && demoResponse && <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />}
               </div>
               {demoMutation.isPending && (
                 <div className="p-4 bg-muted rounded-lg">
