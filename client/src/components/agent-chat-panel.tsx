@@ -105,130 +105,135 @@ export default function AgentChatPanel() {
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
         onClick={closeAgentChat}
         data-testid="overlay-agent-chat"
       />
       <div
-        className={cn(
-          "fixed right-0 top-0 h-screen w-full md:w-[600px] lg:w-[700px] bg-background border-l shadow-2xl z-50 flex flex-col transition-transform duration-300",
-          isOpen ? "translate-x-0" : "translate-x-full"
-        )}
-        data-testid="panel-agent-chat"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        data-testid="panel-agent-chat-container"
       >
-        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-14 w-14 rounded-xl shadow-lg">
-              <AvatarFallback className="rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
-                <IconComponent className="h-7 w-7 text-white" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold" data-testid="text-agent-name">{activeAgent.name}</h3>
-                <Badge variant="secondary" className="text-xs">
-                  <Zap className="h-3 w-3 mr-1" />
-                  Deployed
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">{activeAgent.domain}</p>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="flex items-center gap-1 text-xs text-emerald-500">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Online
-                </span>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Shield className="h-3 w-3" />
-                  Hydra L2
-                </span>
+        <div
+          className={cn(
+            "w-full max-w-3xl h-[85vh] max-h-[800px] bg-background border rounded-2xl shadow-2xl flex flex-col transition-all duration-300",
+            isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          )}
+          data-testid="panel-agent-chat"
+        >
+          <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-t-2xl">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-14 w-14 rounded-xl shadow-lg">
+                <AvatarFallback className="rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <IconComponent className="h-7 w-7 text-white" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold" data-testid="text-agent-name">{activeAgent.name}</h3>
+                  <Badge variant="secondary" className="text-xs">
+                    <Zap className="h-3 w-3 mr-1" />
+                    Deployed
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{activeAgent.domain}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="flex items-center gap-1 text-xs text-emerald-500">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Online
+                  </span>
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Shield className="h-3 w-3" />
+                    Hydra L2
+                  </span>
+                </div>
               </div>
             </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={closeAgentChat}
+              className="h-10 w-10"
+              data-testid="button-close-agent-chat"
+            >
+              <X className="h-6 w-6" />
+            </Button>
           </div>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={closeAgentChat}
-            className="h-10 w-10"
-            data-testid="button-close-agent-chat"
-          >
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
 
-        <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-          <div className="space-y-6">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex gap-4",
-                  message.sender === "user" ? "flex-row-reverse" : ""
-                )}
-                data-testid={`message-${message.id}`}
-              >
-                {message.sender === "agent" && (
+          <ScrollArea className="flex-1 p-6" ref={scrollRef}>
+            <div className="space-y-6">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex gap-4",
+                    message.sender === "user" ? "flex-row-reverse" : ""
+                  )}
+                  data-testid={`message-${message.id}`}
+                >
+                  {message.sender === "agent" && (
+                    <Avatar className="h-10 w-10 rounded-lg shrink-0 shadow-md">
+                      <AvatarFallback className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+                        <IconComponent className="h-5 w-5 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className={cn("flex flex-col max-w-[75%]", message.sender === "user" ? "items-end" : "")}>
+                    <div
+                      className={cn(
+                        "rounded-xl px-4 py-3 text-base leading-relaxed",
+                        message.sender === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      )}
+                    >
+                      {message.content}
+                    </div>
+                    <span className="text-xs text-muted-foreground mt-2">{message.timestamp}</span>
+                  </div>
+                </div>
+              ))}
+              {chatMutation.isPending && (
+                <div className="flex gap-4">
                   <Avatar className="h-10 w-10 rounded-lg shrink-0 shadow-md">
                     <AvatarFallback className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
                       <IconComponent className="h-5 w-5 text-white" />
                     </AvatarFallback>
                   </Avatar>
-                )}
-                <div className={cn("flex flex-col max-w-[75%]", message.sender === "user" ? "items-end" : "")}>
-                  <div
-                    className={cn(
-                      "rounded-xl px-4 py-3 text-base leading-relaxed",
-                      message.sender === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    )}
-                  >
-                    {message.content}
+                  <div className="flex items-center gap-3 bg-muted rounded-xl px-4 py-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
+                    <span className="text-base text-muted-foreground">Thinking...</span>
                   </div>
-                  <span className="text-xs text-muted-foreground mt-2">{message.timestamp}</span>
                 </div>
-              </div>
-            ))}
-            {chatMutation.isPending && (
-              <div className="flex gap-4">
-                <Avatar className="h-10 w-10 rounded-lg shrink-0 shadow-md">
-                  <AvatarFallback className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                    <IconComponent className="h-5 w-5 text-white" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex items-center gap-3 bg-muted rounded-xl px-4 py-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
-                  <span className="text-base text-muted-foreground">Thinking...</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+              )}
+            </div>
+          </ScrollArea>
 
-        <div className="p-6 border-t bg-muted/30">
-          <div className="flex gap-3">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={`Ask ${activeAgent.name} anything...`}
-              disabled={chatMutation.isPending}
-              className="h-12 text-base px-4"
-              data-testid="input-agent-message"
-            />
-            <Button
-              size="icon"
-              onClick={handleSend}
-              disabled={!input.trim() || chatMutation.isPending}
-              className="h-12 w-12"
-              data-testid="button-send-agent-message"
-            >
-              <Send className="h-5 w-5" />
-            </Button>
+          <div className="p-6 border-t bg-muted/30 rounded-b-2xl">
+            <div className="flex gap-3">
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={`Ask ${activeAgent.name} anything...`}
+                disabled={chatMutation.isPending}
+                className="h-12 text-base px-4"
+                data-testid="input-agent-message"
+              />
+              <Button
+                size="icon"
+                onClick={handleSend}
+                disabled={!input.trim() || chatMutation.isPending}
+                className="h-12 w-12"
+                data-testid="button-send-agent-message"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Powered by Cardano blockchain with Hydra Layer 2 micropayments
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-3">
-            Powered by Cardano blockchain with Hydra Layer 2 micropayments
-          </p>
         </div>
       </div>
     </>
