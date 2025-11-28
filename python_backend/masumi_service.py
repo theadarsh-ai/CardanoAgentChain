@@ -9,6 +9,8 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, asdict
 
+from blockchain_simulation import simulated_blockchain
+
 
 @dataclass
 class MasumiAgent:

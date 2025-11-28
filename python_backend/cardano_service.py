@@ -11,6 +11,8 @@ import requests
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
+from blockchain_simulation import simulated_blockchain
+
 
 class CardanoService:
     """Service for interacting with Cardano blockchain"""
@@ -191,9 +193,11 @@ class CardanoService:
                 result["tokens"] = []
                 result["status"] = "error"
         else:
-            result["ada_balance"] = 1000.0
-            result["lovelace"] = 1000_000_000
-            result["tokens"] = []
+            wallet = simulated_blockchain.get_wallet(wallet_address)
+            result["ada_balance"] = wallet["ada_balance"]
+            result["lovelace"] = wallet["lovelace"]
+            result["tokens"] = wallet["tokens"]
+            result["tx_count"] = wallet.get("tx_count", 0)
             result["status"] = "simulated"
 
         return result
@@ -216,6 +220,12 @@ class CardanoService:
             else:
                 result["status"] = "connection_error"
         else:
+            stats = simulated_blockchain.get_network_stats()
+            result["current_block_height"] = stats["cardano"]["current_block_height"]
+            result["current_slot"] = stats["cardano"]["current_slot"]
+            result["current_epoch"] = stats["cardano"]["current_epoch"]
+            result["total_wallets"] = stats["cardano"]["total_wallets"]
+            result["total_transactions"] = stats["cardano"]["total_transactions"]
             result["status"] = "simulated"
             result["message"] = "Provide BLOCKFROST_API_KEY to connect to live network"
 
@@ -243,11 +253,15 @@ class CardanoService:
             else:
                 result["status"] = "error"
         else:
-            result["block_hash"] = self._generate_cardano_tx_hash()
-            result["block_height"] = 12345678
-            result["slot"] = 98765432
-            result["epoch"] = 500
-            result["tx_count"] = 150
+            block = simulated_blockchain.get_latest_block()
+            result["block_hash"] = block["hash"]
+            result["block_height"] = block["height"]
+            result["slot"] = block["slot"]
+            result["epoch"] = block["epoch"]
+            result["time"] = block["time"]
+            result["tx_count"] = block["tx_count"]
+            result["size"] = block["size"]
+            result["fees"] = block["fees"]
             result["status"] = "simulated"
 
         return result
@@ -273,10 +287,36 @@ class CardanoService:
             else:
                 result["status"] = "not_found"
         else:
-            result["block"] = self._generate_cardano_tx_hash()
-            result["block_height"] = 12345678
-            result["slot"] = 98765432
-            result["fees"] = 0.17
+            tx = simulated_blockchain.get_transaction(tx_hash)
+            result["block"] = tx["block_hash"]
+            result["block_height"] = tx["block_height"]
+            result["slot"] = tx["slot"]
+            result["fees"] = tx["fees"]
+            result["amount"] = tx["amount"]
+            result["from_address"] = tx.get("from_address", "")
+            result["to_address"] = tx.get("to_address", "")
+            result["timestamp"] = tx["timestamp"]
+            result["confirmations"] = tx.get("confirmations", 1000)
+            result["status"] = "simulated"
+
+        return result
+    
+    def get_recent_transactions(self, limit: int = 20) -> Dict[str, Any]:
+        """
+        Get recent L1 transactions
+        """
+        result = {
+            "network": self.network,
+            "is_simulated": not self._is_live
+        }
+
+        if self._is_live:
+            result["transactions"] = []
+            result["status"] = "not_implemented"
+        else:
+            txs = simulated_blockchain.get_recent_transactions(limit)
+            result["transactions"] = txs
+            result["total"] = len(txs)
             result["status"] = "simulated"
 
         return result
