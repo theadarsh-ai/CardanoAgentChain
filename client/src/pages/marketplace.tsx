@@ -28,7 +28,7 @@ export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomain, setSelectedDomain] = useState("All");
   const { toast } = useToast();
-  const { openAgentChat } = useAgentChat();
+  const { startDeploying, finishDeploying } = useAgentChat();
 
   const { data: agents, isLoading } = useQuery<Agent[]>({
     queryKey: ["/api/agents"],
@@ -40,6 +40,7 @@ export default function Marketplace() {
       return response.json();
     },
     onSuccess: (data) => {
+      finishDeploying();
       toast({
         title: "Agent Deployed",
         description: `${data.message}. Transaction: ${data.txHash}`,
@@ -48,6 +49,7 @@ export default function Marketplace() {
       queryClient.invalidateQueries({ queryKey: ["/api/decision-logs"] });
     },
     onError: () => {
+      finishDeploying();
       toast({
         title: "Deployment Failed",
         description: "Failed to deploy agent. Please try again.",
@@ -57,14 +59,14 @@ export default function Marketplace() {
   });
 
   const handleDeployAgent = (agent: Agent) => {
-    deployMutation.mutate(agent.id);
-    openAgentChat({
+    startDeploying({
       id: agent.id,
       name: agent.name,
       icon: agent.icon,
       domain: agent.domain,
       systemPrompt: agent.systemPrompt,
     });
+    deployMutation.mutate(agent.id);
   };
 
   const filteredAgents = (agents || []).filter((agent) => {
