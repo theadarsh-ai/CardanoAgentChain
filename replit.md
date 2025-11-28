@@ -90,6 +90,11 @@ Optional blockchain API keys (for live blockchain integration):
     - Glow effects removed in favor of subtle shadows
     - Hero section features background image with dark overlay
     - All components use consistent, subdued color palette
+  - Implemented dual chat system:
+    - Dedicated AgentHub Assistant page at /chat for general AI assistance
+    - Individual agent chat panels slide in from the right sidebar when deploying agents
+    - AgentChatContext manages active agent chat state across the app
+    - "Deploy Agent" button both deploys the agent AND opens its chat panel
 
 ## Deployment
 
