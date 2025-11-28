@@ -29,11 +29,14 @@ export default function AgentCard({
     <Card className="hover-elevate" data-testid={`card-agent-${name.toLowerCase().replace(/\s+/g, '-')}`}>
       <CardHeader className="gap-1">
         <div className="flex items-start justify-between gap-2">
-          <Avatar className="h-12 w-12 rounded-lg">
-            <AvatarFallback className="rounded-lg bg-gradient-to-br from-primary to-pink-500">
-              <Icon className="h-6 w-6 text-primary-foreground" />
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <div className="absolute inset-0 bg-[#10FF00] blur-md opacity-30 rounded-lg" />
+            <Avatar className="relative h-12 w-12 rounded-lg">
+              <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#10FF00] to-[#00FF88]">
+                <Icon className="h-6 w-6 text-black" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
           <Badge variant="secondary" className="text-xs" data-testid={`badge-domain-${domain.toLowerCase().replace(/\s+/g, '-')}`}>
             {domain}
           </Badge>

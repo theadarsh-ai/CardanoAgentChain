@@ -285,4 +285,29 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Green glow effects for Cardano theme */
+  .glow-green {
+    box-shadow: 0 0 20px rgba(16, 255, 0, 0.3), 0 0 40px rgba(16, 255, 0, 0.1);
+  }
+  
+  .glow-green-sm {
+    box-shadow: 0 0 10px rgba(16, 255, 0, 0.2);
+  }
+  
+  .glow-green-lg {
+    box-shadow: 0 0 30px rgba(16, 255, 0, 0.4), 0 0 60px rgba(16, 255, 0, 0.2);
+  }
+  
+  .text-glow-green {
+    text-shadow: 0 0 10px rgba(16, 255, 0, 0.5);
+  }
+  
+  /* Gradient text for headings */
+  .gradient-text-green {
+    background: linear-gradient(135deg, #10FF00, #00FF88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }

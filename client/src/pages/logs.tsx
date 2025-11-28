@@ -49,8 +49,11 @@ export default function Logs() {
                   <Card key={tx.id} className="p-4" data-testid={`transaction-${tx.id}`}>
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0">
-                          <Zap className="h-5 w-5 text-white" />
+                        <div className="relative shrink-0">
+                          <div className="absolute inset-0 bg-[#10FF00] blur-md opacity-40 rounded-full" />
+                          <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#10FF00] to-[#00FF88]">
+                            <Zap className="h-5 w-5 text-black" />
+                          </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 text-sm">
