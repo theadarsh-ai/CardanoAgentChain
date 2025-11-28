@@ -9,6 +9,7 @@ import { X, Send, Loader2, Sparkles, Bot, Mail, ShieldCheck, BarChart3, Shopping
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+import { BlockchainActivityDisplay } from "@/components/blockchain-activity";
 
 function formatMarkdown(text: string): JSX.Element[] {
   const lines = text.split('\n');
@@ -50,11 +51,33 @@ import styleMeme from "@assets/generated_images/cardano_style_advisor_meme.png";
 import tradingMeme from "@assets/generated_images/cardano_trading_robot_meme.png";
 import yieldMeme from "@assets/generated_images/cardano_yield_farming_meme.png";
 
+interface BlockchainActivity {
+  type: string;
+  icon: string;
+  title: string;
+  description: string;
+  details: Record<string, string | number | boolean>;
+  status: string;
+  is_simulated: boolean;
+  timestamp: string;
+}
+
+interface AgentProfile {
+  name: string;
+  did: string;
+  reputation_score: number;
+  total_transactions: number;
+  verified: boolean;
+}
+
 interface Message {
   id: string;
   content: string;
   sender: "user" | "agent";
   timestamp: string;
+  blockchainActivities?: BlockchainActivity[];
+  agentProfile?: AgentProfile;
+  isSimulationMode?: boolean;
 }
 
 const iconMap: Record<string, React.ElementType> = {
@@ -175,6 +198,9 @@ export default function AgentChatPanel() {
         content: data.agentMessage?.content || data.response || "I received your message.",
         sender: "agent",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        blockchainActivities: data.blockchainActivities || [],
+        agentProfile: data.agentProfile || null,
+        isSimulationMode: data.isSimulationMode ?? true,
       };
       setMessages((prev) => [...prev, agentMessage]);
     },
@@ -357,7 +383,7 @@ export default function AgentChatPanel() {
                   )}
                   <div className={cn(
                     "flex flex-col",
-                    message.sender === "user" ? "items-end max-w-[75%]" : "items-start max-w-[75%]"
+                    message.sender === "user" ? "items-end max-w-[75%]" : "items-start max-w-[80%]"
                   )}>
                     {message.sender === "agent" && (
                       <span className="text-xs font-medium text-emerald-500 mb-1.5 ml-1">
@@ -376,6 +402,15 @@ export default function AgentChatPanel() {
                         {message.sender === "agent" ? formatMarkdown(message.content) : message.content}
                       </div>
                     </div>
+                    {message.sender === "agent" && message.blockchainActivities && message.blockchainActivities.length > 0 && (
+                      <div className="w-full mt-2">
+                        <BlockchainActivityDisplay
+                          activities={message.blockchainActivities}
+                          isSimulationMode={message.isSimulationMode ?? true}
+                          agentProfile={message.agentProfile}
+                        />
+                      </div>
+                    )}
                     <span className="text-[11px] text-muted-foreground mt-1.5 mx-1">
                       {message.timestamp}
                     </span>

@@ -9,6 +9,26 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Message, Conversation } from "@shared/schema";
+import { BlockchainActivityDisplay } from "@/components/blockchain-activity";
+
+interface BlockchainActivity {
+  type: string;
+  icon: string;
+  title: string;
+  description: string;
+  details: Record<string, string | number | boolean>;
+  status: string;
+  is_simulated: boolean;
+  timestamp: string;
+}
+
+interface AgentProfile {
+  name: string;
+  did: string;
+  reputation_score: number;
+  total_transactions: number;
+  verified: boolean;
+}
 
 function formatMarkdown(text: string): JSX.Element[] {
   const lines = text.split('\n');
@@ -47,6 +67,9 @@ interface ChatMessage {
   agentName?: string | null;
   content: string;
   timestamp: string;
+  blockchainActivities?: BlockchainActivity[];
+  agentProfile?: AgentProfile;
+  isSimulationMode?: boolean;
 }
 
 export default function ChatInterface() {
@@ -90,6 +113,9 @@ export default function ChatInterface() {
         agentName: data.selectedAgent,
         content: data.agentMessage.content,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        blockchainActivities: data.blockchainActivities || [],
+        agentProfile: data.agentProfile || null,
+        isSimulationMode: data.isSimulationMode ?? true,
       };
       setMessages((prev) => [...prev, agentMessage]);
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -170,7 +196,7 @@ export default function ChatInterface() {
                   </AvatarFallback>
                 </Avatar>
               )}
-              <div className={`flex flex-col ${message.sender === "user" ? "items-end" : ""} max-w-[70%]`}>
+              <div className={`flex flex-col ${message.sender === "user" ? "items-end" : ""} ${message.sender === "agent" ? "max-w-[80%]" : "max-w-[70%]"}`}>
                 {message.sender === "agent" && message.agentName && (
                   <span className="text-xs text-muted-foreground mb-1">{message.agentName}</span>
                 )}
@@ -185,6 +211,15 @@ export default function ChatInterface() {
                     {message.sender === "agent" ? formatMarkdown(message.content) : message.content}
                   </div>
                 </div>
+                {message.sender === "agent" && message.blockchainActivities && message.blockchainActivities.length > 0 && (
+                  <div className="w-full mt-2">
+                    <BlockchainActivityDisplay
+                      activities={message.blockchainActivities}
+                      isSimulationMode={message.isSimulationMode ?? true}
+                      agentProfile={message.agentProfile}
+                    />
+                  </div>
+                )}
                 <span className="text-xs text-muted-foreground mt-1">{message.timestamp}</span>
               </div>
             </div>
