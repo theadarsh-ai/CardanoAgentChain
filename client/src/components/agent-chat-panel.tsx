@@ -64,11 +64,25 @@ export default function AgentChatPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [deployMessageIndex, setDeployMessageIndex] = useState(0);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const IconComponent = activeAgent?.icon ? iconMap[activeAgent.icon] || Bot : Bot;
   const memeImage = activeAgent?.name ? memeMap[activeAgent.name] : null;
+
+  // Create conversation when agent chat opens
+  const createConversationMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/conversations", {
+        title: `Chat with ${activeAgent?.name}`,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setConversationId(data.id);
+    },
+  });
 
   useEffect(() => {
     if (isDeploying) {
@@ -92,8 +106,12 @@ export default function AgentChatPanel() {
     }
   }, [messages]);
 
+  // Create conversation and set welcome message when agent opens
   useEffect(() => {
-    if (activeAgent && !isDeploying) {
+    if (activeAgent && !isDeploying && isOpen) {
+      // Create a new conversation for this agent chat
+      createConversationMutation.mutate();
+      
       setMessages([{
         id: "welcome",
         content: `Hello! I'm ${activeAgent.name}, your specialized ${activeAgent.domain} assistant powered by Cardano. How can I help you today?`,
@@ -101,13 +119,22 @@ export default function AgentChatPanel() {
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }]);
     }
-  }, [activeAgent?.id, isDeploying]);
+  }, [activeAgent?.id, isDeploying, isOpen]);
+
+  // Reset conversation when chat closes
+  useEffect(() => {
+    if (!isOpen) {
+      setConversationId(null);
+      setMessages([]);
+    }
+  }, [isOpen]);
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
       const response = await apiRequest("POST", "/api/chat", {
+        conversationId: conversationId,
         message,
-        agentId: activeAgent?.id,
+        agentName: activeAgent?.name,
       });
       return response.json();
     },
@@ -120,10 +147,20 @@ export default function AgentChatPanel() {
       };
       setMessages((prev) => [...prev, agentMessage]);
     },
+    onError: (error) => {
+      console.error("Chat error:", error);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: "Sorry, I encountered an error processing your request. Please try again.",
+        sender: "agent",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    },
   });
 
   const handleSend = () => {
-    if (!input.trim() || chatMutation.isPending) return;
+    if (!input.trim() || chatMutation.isPending || !conversationId) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -333,14 +370,14 @@ export default function AgentChatPanel() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`Ask ${activeAgent.name} anything...`}
-                disabled={chatMutation.isPending}
+                placeholder={conversationId ? `Ask ${activeAgent.name} anything...` : "Initializing..."}
+                disabled={chatMutation.isPending || !conversationId}
                 className="h-14 text-lg px-6 rounded-xl border-emerald-500/20 focus:border-emerald-500/40 focus:ring-emerald-500/20"
                 data-testid="input-agent-message"
               />
               <Button
                 onClick={handleSend}
-                disabled={!input.trim() || chatMutation.isPending}
+                disabled={!input.trim() || chatMutation.isPending || !conversationId}
                 className="h-14 px-8 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg"
                 data-testid="button-send-agent-message"
               >
