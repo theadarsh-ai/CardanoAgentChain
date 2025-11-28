@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Cpu, Zap } from "lucide-react";
-import heroImage from "@assets/generated_images/ai_blockchain_network_hero.png";
+import heroImage from "@assets/generated_images/emerald_blockchain_network_hero.png";
 
 export default function HeroSection() {
   return (
