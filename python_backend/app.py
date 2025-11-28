@@ -162,6 +162,25 @@ def chat():
                 agent_system_prompt = get_agent_system_prompt(response_agent_name)
 
         if not selected_agent:
+            # Keyword-based routing for specialized agents
+            msg_lower = message.lower()
+            if any(kw in msg_lower for kw in ["apy", "yield", "defi", "protocol", "liquidity", "farming", "pool", "apr"]):
+                selected_agent = AgentModel.get_by_name("YieldMaximizer")
+                if selected_agent:
+                    response_agent_name = "YieldMaximizer"
+                    agent_system_prompt = get_agent_system_prompt("YieldMaximizer")
+            elif any(kw in msg_lower for kw in ["price", "market", "btc", "eth", "cardano", "ada", "trading", "trend", "chart"]):
+                selected_agent = AgentModel.get_by_name("TradeMind")
+                if selected_agent:
+                    response_agent_name = "TradeMind"
+                    agent_system_prompt = get_agent_system_prompt("TradeMind")
+            elif any(kw in msg_lower for kw in ["email", "marketing", "campaign", "newsletter", "subject"]):
+                selected_agent = AgentModel.get_by_name("MailMind")
+                if selected_agent:
+                    response_agent_name = "MailMind"
+                    agent_system_prompt = get_agent_system_prompt("MailMind")
+        
+        if not selected_agent:
             analysis = analyze_user_request(message)
 
             if analysis["selected_agents"] and analysis["selected_agents"][0] != "AgentHub":
