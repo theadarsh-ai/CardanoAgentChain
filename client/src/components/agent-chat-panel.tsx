@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useAgentChat } from "@/contexts/agent-chat-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,37 @@ import { X, Send, Loader2, Sparkles, Bot, Mail, ShieldCheck, BarChart3, Shopping
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+
+function formatMarkdown(text: string): JSX.Element[] {
+  const lines = text.split('\n');
+  const elements: JSX.Element[] = [];
+  
+  lines.forEach((line, lineIndex) => {
+    if (lineIndex > 0) {
+      elements.push(<br key={`br-${lineIndex}`} />);
+    }
+    
+    const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+    
+    parts.forEach((part, partIndex) => {
+      const key = `${lineIndex}-${partIndex}`;
+      
+      if (part.startsWith('**') && part.endsWith('**')) {
+        elements.push(<strong key={key} className="font-semibold">{part.slice(2, -2)}</strong>);
+      } else if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+        elements.push(<em key={key}>{part.slice(1, -1)}</em>);
+      } else if (part.startsWith('`') && part.endsWith('`')) {
+        elements.push(<code key={key} className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">{part.slice(1, -1)}</code>);
+      } else if (part.startsWith('- ')) {
+        elements.push(<span key={key} className="block pl-4">• {part.slice(2)}</span>);
+      } else {
+        elements.push(<span key={key}>{part}</span>);
+      }
+    });
+  });
+  
+  return elements;
+}
 
 import complianceMeme from "@assets/generated_images/cardano_compliance_robot_meme.png";
 import dataMeme from "@assets/generated_images/cardano_data_analytics_meme.png";
@@ -341,7 +372,9 @@ export default function AgentChatPanel() {
                           : "bg-muted border border-border/40 rounded-bl-md"
                       )}
                     >
-                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                      <div className="break-words">
+                        {message.sender === "agent" ? formatMarkdown(message.content) : message.content}
+                      </div>
                     </div>
                     <span className="text-[11px] text-muted-foreground mt-1.5 mx-1">
                       {message.timestamp}

@@ -10,6 +10,37 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Message, Conversation } from "@shared/schema";
 
+function formatMarkdown(text: string): JSX.Element[] {
+  const lines = text.split('\n');
+  const elements: JSX.Element[] = [];
+  
+  lines.forEach((line, lineIndex) => {
+    if (lineIndex > 0) {
+      elements.push(<br key={`br-${lineIndex}`} />);
+    }
+    
+    const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+    
+    parts.forEach((part, partIndex) => {
+      const key = `${lineIndex}-${partIndex}`;
+      
+      if (part.startsWith('**') && part.endsWith('**')) {
+        elements.push(<strong key={key} className="font-semibold">{part.slice(2, -2)}</strong>);
+      } else if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+        elements.push(<em key={key}>{part.slice(1, -1)}</em>);
+      } else if (part.startsWith('`') && part.endsWith('`')) {
+        elements.push(<code key={key} className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded text-sm font-mono">{part.slice(1, -1)}</code>);
+      } else if (part.startsWith('- ')) {
+        elements.push(<span key={key} className="block pl-4">• {part.slice(2)}</span>);
+      } else {
+        elements.push(<span key={key}>{part}</span>);
+      }
+    });
+  });
+  
+  return elements;
+}
+
 interface ChatMessage {
   id: string;
   sender: "user" | "agent";
@@ -150,7 +181,9 @@ export default function ChatInterface() {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <div className="text-sm break-words">
+                    {message.sender === "agent" ? formatMarkdown(message.content) : message.content}
+                  </div>
                 </div>
                 <span className="text-xs text-muted-foreground mt-1">{message.timestamp}</span>
               </div>
