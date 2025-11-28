@@ -2,7 +2,7 @@ import AgentCard from "@/components/agent-card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Sparkles, Mail, ShieldCheck, BarChart3, ShoppingBag, Palette, Banknote, TrendingUp, LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,11 +24,14 @@ const iconMap: Record<string, LucideIcon> = {
 
 const domains = ["All", "Workflow Automation", "Data & Compliance", "Customer Support", "DeFi Services"];
 
+const MINIMUM_DEPLOY_TIME = 3000;
+
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomain, setSelectedDomain] = useState("All");
   const { toast } = useToast();
   const { startDeploying, finishDeploying } = useAgentChat();
+  const deployStartTime = useRef<number>(0);
 
   const { data: agents, isLoading } = useQuery<Agent[]>({
     queryKey: ["/api/agents"],
@@ -40,25 +43,36 @@ export default function Marketplace() {
       return response.json();
     },
     onSuccess: (data) => {
-      finishDeploying();
-      toast({
-        title: "Agent Deployed",
-        description: `${data.message}. Transaction: ${data.txHash}`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/agents"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/decision-logs"] });
+      const elapsed = Date.now() - deployStartTime.current;
+      const remainingTime = Math.max(0, MINIMUM_DEPLOY_TIME - elapsed);
+      
+      setTimeout(() => {
+        finishDeploying();
+        toast({
+          title: "Agent Deployed",
+          description: `${data.message}. Transaction: ${data.txHash}`,
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/agents"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/decision-logs"] });
+      }, remainingTime);
     },
     onError: () => {
-      finishDeploying();
-      toast({
-        title: "Deployment Failed",
-        description: "Failed to deploy agent. Please try again.",
-        variant: "destructive",
-      });
+      const elapsed = Date.now() - deployStartTime.current;
+      const remainingTime = Math.max(0, MINIMUM_DEPLOY_TIME - elapsed);
+      
+      setTimeout(() => {
+        finishDeploying();
+        toast({
+          title: "Deployment Failed",
+          description: "Failed to deploy agent. Please try again.",
+          variant: "destructive",
+        });
+      }, remainingTime);
     },
   });
 
   const handleDeployAgent = (agent: Agent) => {
+    deployStartTime.current = Date.now();
     startDeploying({
       id: agent.id,
       name: agent.name,
