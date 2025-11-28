@@ -22,6 +22,10 @@ from openai_service import get_agent_response, analyze_user_request
 from cardano_service import cardano_service
 from masumi_service import masumi_service
 from hydra_service import hydra_service
+from agent_data import (
+    get_agent_capabilities, get_protocol_info, get_market_data, 
+    get_knowledge, get_trending_services, get_performance_metrics, get_pricing
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -594,6 +598,68 @@ def get_metrics():
     except Exception as e:
         print(f"Error fetching metrics: {e}")
         return jsonify({"error": "Failed to fetch metrics"}), 500
+
+# Agent Data & Information APIs
+
+@app.route('/api/data/agent-capabilities', methods=['GET'])
+def agent_capabilities_endpoint():
+    """Get agent capabilities"""
+    try:
+        agent_name = request.args.get("agent")
+        return jsonify(get_agent_capabilities(agent_name))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/data/protocols', methods=['GET'])
+def protocols_endpoint():
+    """Get protocol information"""
+    try:
+        protocol_name = request.args.get("protocol")
+        return jsonify(get_protocol_info(protocol_name))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/data/market', methods=['GET'])
+def market_data_endpoint():
+    """Get market data"""
+    try:
+        asset = request.args.get("asset")
+        return jsonify(get_market_data(asset))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/data/knowledge', methods=['GET'])
+def knowledge_endpoint():
+    """Get knowledge base"""
+    try:
+        topic = request.args.get("topic")
+        return jsonify(get_knowledge(topic))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/data/trending', methods=['GET'])
+def trending_endpoint():
+    """Get trending services"""
+    try:
+        return jsonify(get_trending_services())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/data/performance', methods=['GET'])
+def performance_endpoint():
+    """Get performance metrics"""
+    try:
+        return jsonify(get_performance_metrics())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/data/pricing', methods=['GET'])
+def pricing_endpoint():
+    """Get pricing information"""
+    try:
+        return jsonify(get_pricing())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)
