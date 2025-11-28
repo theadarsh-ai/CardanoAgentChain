@@ -3,7 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Sparkles, Mail, ShieldCheck, BarChart3, ShoppingBag, Palette, Banknote, TrendingUp, LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAgentChat } from "@/contexts/agent-chat-context";
@@ -25,13 +27,37 @@ const domains = ["All", "Workflow Automation", "Data & Compliance", "Customer Su
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomain, setSelectedDomain] = useState("All");
+  const { toast } = useToast();
   const { openAgentChat } = useAgentChat();
 
   const { data: agents, isLoading } = useQuery<Agent[]>({
     queryKey: ["/api/agents"],
   });
 
+  const deployMutation = useMutation({
+    mutationFn: async (agentId: string) => {
+      const response = await apiRequest("POST", `/api/agents/${agentId}/deploy`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Agent Deployed",
+        description: `${data.message}. Transaction: ${data.txHash}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/agents"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/decision-logs"] });
+    },
+    onError: () => {
+      toast({
+        title: "Deployment Failed",
+        description: "Failed to deploy agent. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeployAgent = (agent: Agent) => {
+    deployMutation.mutate(agent.id);
     openAgentChat({
       id: agent.id,
       name: agent.name,
