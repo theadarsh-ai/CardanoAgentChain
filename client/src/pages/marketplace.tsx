@@ -24,7 +24,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 const domains = ["All", "Workflow Automation", "Data & Compliance", "Customer Support", "DeFi Services"];
 
-const MINIMUM_DEPLOY_TIME = 3000;
+const MINIMUM_DEPLOY_TIME = 5000;
 
 export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState("");
