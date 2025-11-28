@@ -10,14 +10,14 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 
-import complianceMeme from "@assets/generated_images/compliance_robot_meme.png";
-import dataMeme from "@assets/generated_images/data_analytics_robot_meme.png";
-import emailMeme from "@assets/generated_images/email_marketing_robot_meme.png";
-import shoppingMeme from "@assets/generated_images/shopping_assistant_robot_meme.png";
-import socialMeme from "@assets/generated_images/social_media_robot_meme.png";
-import styleMeme from "@assets/generated_images/style_advisor_robot_meme.png";
-import tradingMeme from "@assets/generated_images/trading_robot_meme.png";
-import yieldMeme from "@assets/generated_images/yield_farming_robot_meme.png";
+import complianceMeme from "@assets/generated_images/cardano_compliance_robot_meme.png";
+import dataMeme from "@assets/generated_images/cardano_data_analytics_meme.png";
+import emailMeme from "@assets/generated_images/cardano_email_marketing_meme.png";
+import shoppingMeme from "@assets/generated_images/cardano_shopping_assistant_meme.png";
+import socialMeme from "@assets/generated_images/cardano_social_media_meme.png";
+import styleMeme from "@assets/generated_images/cardano_style_advisor_meme.png";
+import tradingMeme from "@assets/generated_images/cardano_trading_robot_meme.png";
+import yieldMeme from "@assets/generated_images/cardano_yield_farming_meme.png";
 
 interface Message {
   id: string;
@@ -49,12 +49,12 @@ const memeMap: Record<string, string> = {
 };
 
 const deployMessages = [
-  "Initializing neural networks...",
-  "Connecting to Cardano blockchain...",
-  "Establishing Hydra L2 channel...",
-  "Loading agent capabilities...",
-  "Verifying credentials on-chain...",
-  "Almost ready to assist you...",
+  "Waking up the Ouroboros...",
+  "Connecting to Cardano mainnet...",
+  "Opening Hydra head channel...",
+  "Staking agent credentials...",
+  "Peer-reviewing your request...",
+  "WAGMI! Almost ready...",
 ];
 
 export default function AgentChatPanel() {
@@ -73,7 +73,7 @@ export default function AgentChatPanel() {
       setDeployMessageIndex(0);
       const interval = setInterval(() => {
         setDeployMessageIndex((prev) => (prev + 1) % deployMessages.length);
-      }, 800);
+      }, 500);
       return () => clearInterval(interval);
     }
   }, [isDeploying]);
@@ -94,7 +94,7 @@ export default function AgentChatPanel() {
     if (activeAgent && !isDeploying) {
       setMessages([{
         id: "welcome",
-        content: `Hello! I'm ${activeAgent.name}, your specialized ${activeAgent.domain} assistant. How can I help you today?`,
+        content: `Hello! I'm ${activeAgent.name}, your specialized ${activeAgent.domain} assistant powered by Cardano. How can I help you today?`,
         sender: "agent",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }]);
@@ -165,19 +165,19 @@ export default function AgentChatPanel() {
               {memeImage ? (
                 <img 
                   src={memeImage} 
-                  alt={`${activeAgent.name} meme`}
-                  className="w-64 h-64 object-contain rounded-xl"
+                  alt={`${activeAgent.name} Cardano meme`}
+                  className="w-72 h-72 object-contain rounded-xl shadow-lg"
                   data-testid="img-deploy-meme"
                 />
               ) : (
-                <div className="w-64 h-64 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
+                <div className="w-72 h-72 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
                   <IconComponent className="h-24 w-24 text-emerald-500" />
                 </div>
               )}
               <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-emerald-500 text-white px-4 py-1 text-sm">
+                <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-1.5 text-sm shadow-lg">
                   <Rocket className="h-4 w-4 mr-2 animate-bounce" />
-                  Deploying
+                  Deploying on Cardano
                 </Badge>
               </div>
             </div>
@@ -189,22 +189,22 @@ export default function AgentChatPanel() {
               {activeAgent.domain}
             </p>
 
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 min-h-[28px]">
               <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
-              <span className="text-base text-muted-foreground animate-pulse">
+              <span className="text-base text-muted-foreground">
                 {deployMessages[deployMessageIndex]}
               </span>
             </div>
 
-            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300 ease-out"
                 style={{ width: `${((deployMessageIndex + 1) / deployMessages.length) * 100}%` }}
               />
             </div>
 
             <p className="text-xs text-muted-foreground mt-4 text-center">
-              Establishing secure connection via Hydra Layer 2
+              Establishing secure Hydra L2 payment channel
             </p>
           </div>
         </div>
