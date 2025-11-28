@@ -141,7 +141,7 @@ export default function AgentChatPanel() {
     onSuccess: (data) => {
       const agentMessage: Message = {
         id: Date.now().toString(),
-        content: data.response,
+        content: data.agentMessage?.content || data.response || "I received your message.",
         sender: "agent",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
