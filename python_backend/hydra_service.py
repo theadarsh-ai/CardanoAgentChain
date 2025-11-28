@@ -10,6 +10,8 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
+from blockchain_simulation import simulated_blockchain
+
 
 @dataclass
 class HydraChannel:
@@ -349,8 +351,14 @@ class HydraService:
             else:
                 result["status"] = "connection_error"
         else:
+            stats = simulated_blockchain.get_network_stats()
             result["version"] = "0.15.0-simulated"
-            result["active_heads"] = len(self._channels)
+            result["active_heads"] = stats["hydra"]["active_channels"]
+            result["total_channels"] = stats["hydra"]["total_channels"]
+            result["total_l2_transactions"] = stats["hydra"]["total_l2_transactions"]
+            result["total_volume_ada"] = stats["hydra"]["total_volume_ada"]
+            result["throughput"] = stats["hydra"]["throughput"]
+            result["finality"] = stats["hydra"]["finality"]
             result["status"] = "simulated"
             result["message"] = "Provide HYDRA_NODE_URL to connect to live node"
 

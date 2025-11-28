@@ -516,6 +516,36 @@ def estimate_hydra_fees():
         print(f"Error estimating fees: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/blockchain/cardano/recent-transactions', methods=['GET'])
+def get_recent_l1_transactions():
+    """Get recent Cardano L1 transactions"""
+    try:
+        limit = int(request.args.get("limit", 20))
+        
+        result = cardano_service.get_recent_transactions(limit)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error getting transactions: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/network-stats', methods=['GET'])
+def get_network_stats():
+    """Get combined network statistics across all blockchains"""
+    try:
+        from blockchain_simulation import simulated_blockchain
+        
+        stats = simulated_blockchain.get_network_stats()
+        return jsonify({
+            "timestamp": datetime.now().isoformat(),
+            "cardano": stats["cardano"],
+            "masumi": stats["masumi"],
+            "hydra": stats["hydra"],
+            "is_simulated": True
+        })
+    except Exception as e:
+        print(f"Error getting network stats: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
     """Get recent transactions."""
