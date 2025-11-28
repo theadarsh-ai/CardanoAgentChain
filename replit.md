@@ -95,6 +95,11 @@ Optional blockchain API keys (for live blockchain integration):
     - Individual agent chat panels slide in from the right sidebar when deploying agents
     - AgentChatContext manages active agent chat state across the app
     - "Deploy Agent" button both deploys the agent AND opens its chat panel
+  - Clean sidebar navigation:
+    - Removed individual agent names from left sidebar
+    - Navigation: Home, Marketplace, AgentHub Assistant
+    - System: Architecture, Decision Logs
+    - Agents only appear in chat panel when deployed
 
 ## Deployment
 

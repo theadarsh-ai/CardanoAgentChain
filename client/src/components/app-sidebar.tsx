@@ -8,39 +8,20 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Sparkles, Mail, ShieldCheck, BarChart3, ShoppingBag, Palette, Banknote, TrendingUp } from "lucide-react";
+import { Sparkles, Home, Store, MessageCircle, Network, FileText, Bot } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
-const agentCategories = [
-  {
-    label: "Workflow Automation",
-    items: [
-      { title: "SocialGenie", icon: Sparkles, url: "/agents/socialgenie", description: "Social media management" },
-      { title: "MailMind", icon: Mail, url: "/agents/mailmind", description: "Email marketing automation" },
-    ],
-  },
-  {
-    label: "Data & Compliance",
-    items: [
-      { title: "ComplianceGuard", icon: ShieldCheck, url: "/agents/complianceguard", description: "AML/KYC monitoring" },
-      { title: "InsightBot", icon: BarChart3, url: "/agents/insightbot", description: "Business intelligence" },
-    ],
-  },
-  {
-    label: "Customer Support",
-    items: [
-      { title: "ShopAssist", icon: ShoppingBag, url: "/agents/shopassist", description: "E-commerce support" },
-      { title: "StyleAdvisor", icon: Palette, url: "/agents/styleadvisor", description: "Product recommendations" },
-    ],
-  },
-  {
-    label: "DeFi Services",
-    items: [
-      { title: "YieldMaximizer", icon: Banknote, url: "/agents/yieldmaximizer", description: "Yield optimization" },
-      { title: "TradeMind", icon: TrendingUp, url: "/agents/trademind", description: "Autonomous trading" },
-    ],
-  },
+const mainNavItems = [
+  { title: "Home", icon: Home, url: "/" },
+  { title: "Marketplace", icon: Store, url: "/marketplace" },
+  { title: "AgentHub Assistant", icon: Bot, url: "/chat" },
+];
+
+const systemNavItems = [
+  { title: "Architecture", icon: Network, url: "/architecture" },
+  { title: "Decision Logs", icon: FileText, url: "/logs" },
 ];
 
 export default function AppSidebar() {
@@ -62,29 +43,54 @@ export default function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        {agentCategories.map((category) => (
-          <SidebarGroup key={category.label}>
-            <SidebarGroupLabel>{category.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {category.items.map((item) => {
-                  const isActive = location === item.url;
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.url}>
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainNavItems.map((item) => {
+                const isActive = location === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>System</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemNavItems.map((item) => {
+                const isActive = location === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="p-4">
+        <div className="text-xs text-muted-foreground text-center">
+          <p>Deploy agents from the Marketplace</p>
+          <p className="mt-1">Chat opens on deployment</p>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }
