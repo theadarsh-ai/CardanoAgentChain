@@ -83,6 +83,11 @@ Optional blockchain API keys (for live blockchain integration):
     - Hydra L2: Payment channels, instant micropayments, fee estimation
   - All blockchain services work in simulation mode without API keys
   - When API keys are provided, services connect to live blockchain networks
+  - Applied vibrant green Cardano theme (#10FF00) across entire UI:
+    - Dark mode default for sleek appearance
+    - Green glow effects on icons and buttons
+    - Green gradient backgrounds and borders
+    - All components use consistent green palette
 
 ## Deployment
 
