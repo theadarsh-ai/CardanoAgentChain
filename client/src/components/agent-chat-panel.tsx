@@ -271,34 +271,26 @@ export default function AgentChatPanel() {
           onClick={(e) => e.stopPropagation()}
           data-testid="panel-agent-chat"
         >
-          <div className="flex items-center justify-between p-8 border-b border-emerald-500/10 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent rounded-t-3xl">
-            <div className="flex items-center gap-5">
-              <Avatar className="h-16 w-16 rounded-2xl shadow-xl ring-2 ring-emerald-500/20">
-                <AvatarFallback className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl">
-                  <IconComponent className="h-8 w-8 text-white" />
+          <div className="flex items-center justify-between p-5 md:p-6 border-b border-border/50 bg-muted/30 rounded-t-3xl">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12 rounded-xl shadow-lg ring-2 ring-emerald-500/30">
+                <AvatarFallback className="rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
+                  <IconComponent className="h-6 w-6 text-white" />
                 </AvatarFallback>
               </Avatar>
               <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-2xl font-bold" data-testid="text-agent-name">{activeAgent.name}</h3>
-                  <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-sm px-3">
-                    <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
-                    Deployed
+                <div className="flex items-center gap-2.5 mb-0.5">
+                  <h3 className="text-lg font-semibold" data-testid="text-agent-name">{activeAgent.name}</h3>
+                  <Badge className="bg-emerald-500/15 text-emerald-500 border-0 text-[11px] px-2 py-0.5 font-medium">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Active
                   </Badge>
                 </div>
-                <p className="text-base text-muted-foreground mb-2">{activeAgent.domain}</p>
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1.5 text-sm text-emerald-400">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span>{activeAgent.domain}</span>
+                  <span className="flex items-center gap-1 text-emerald-500">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Online
-                  </span>
-                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Shield className="h-4 w-4" />
-                    Hydra L2 Active
-                  </span>
-                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Zap className="h-4 w-4" />
-                    Instant Payments
                   </span>
                 </div>
               </div>
@@ -307,92 +299,115 @@ export default function AgentChatPanel() {
               size="icon"
               variant="ghost"
               onClick={closeAgentChat}
-              className="h-12 w-12 rounded-xl hover:bg-destructive/10"
+              className="h-10 w-10 rounded-xl hover:bg-destructive/10"
               data-testid="button-close-agent-chat"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 p-8" ref={scrollRef}>
-            <div className="space-y-8 max-w-3xl mx-auto">
+          <ScrollArea className="flex-1 p-6 md:p-8" ref={scrollRef}>
+            <div className="space-y-6 max-w-3xl mx-auto">
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={cn(
-                    "flex gap-5",
-                    message.sender === "user" ? "flex-row-reverse" : ""
+                    "flex gap-4",
+                    message.sender === "user" ? "justify-end" : "justify-start"
                   )}
                   data-testid={`message-${message.id}`}
                 >
                   {message.sender === "agent" && (
-                    <Avatar className="h-12 w-12 rounded-xl shrink-0 shadow-lg ring-2 ring-emerald-500/20">
+                    <Avatar className="h-10 w-10 rounded-xl shrink-0 shadow-md ring-2 ring-emerald-500/20 mt-1">
                       <AvatarFallback className="rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
-                        <IconComponent className="h-6 w-6 text-white" />
+                        <IconComponent className="h-5 w-5 text-white" />
                       </AvatarFallback>
                     </Avatar>
                   )}
-                  <div className={cn("flex flex-col max-w-[80%]", message.sender === "user" ? "items-end" : "")}>
+                  <div className={cn(
+                    "flex flex-col",
+                    message.sender === "user" ? "items-end max-w-[75%]" : "items-start max-w-[75%]"
+                  )}>
+                    {message.sender === "agent" && (
+                      <span className="text-xs font-medium text-emerald-500 mb-1.5 ml-1">
+                        {activeAgent.name}
+                      </span>
+                    )}
                     <div
                       className={cn(
-                        "rounded-2xl px-6 py-4 text-base leading-relaxed shadow-sm",
+                        "rounded-2xl px-5 py-3.5 text-[15px] leading-relaxed shadow-sm",
                         message.sender === "user"
-                          ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
-                          : "bg-muted/80 border border-border/50"
+                          ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-br-md"
+                          : "bg-muted border border-border/40 rounded-bl-md"
                       )}
                     >
-                      {message.content}
+                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
                     </div>
-                    <span className="text-xs text-muted-foreground mt-2 px-2">{message.timestamp}</span>
+                    <span className="text-[11px] text-muted-foreground mt-1.5 mx-1">
+                      {message.timestamp}
+                    </span>
                   </div>
+                  {message.sender === "user" && (
+                    <Avatar className="h-10 w-10 rounded-xl shrink-0 shadow-md ring-2 ring-emerald-500/20 mt-1">
+                      <AvatarFallback className="rounded-xl bg-gradient-to-br from-slate-600 to-slate-700">
+                        <span className="text-sm font-medium text-white">You</span>
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
               ))}
               {chatMutation.isPending && (
-                <div className="flex gap-5">
-                  <Avatar className="h-12 w-12 rounded-xl shrink-0 shadow-lg ring-2 ring-emerald-500/20">
+                <div className="flex gap-4 justify-start">
+                  <Avatar className="h-10 w-10 rounded-xl shrink-0 shadow-md ring-2 ring-emerald-500/20 mt-1">
                     <AvatarFallback className="rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
-                      <IconComponent className="h-6 w-6 text-white" />
+                      <IconComponent className="h-5 w-5 text-white" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex items-center gap-4 bg-muted/80 border border-border/50 rounded-2xl px-6 py-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
-                    <span className="text-base text-muted-foreground">Thinking...</span>
+                  <div className="flex flex-col items-start">
+                    <span className="text-xs font-medium text-emerald-500 mb-1.5 ml-1">
+                      {activeAgent.name}
+                    </span>
+                    <div className="flex items-center gap-3 bg-muted border border-border/40 rounded-2xl rounded-bl-md px-5 py-3.5">
+                      <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                      <span className="text-[15px] text-muted-foreground">Thinking...</span>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </ScrollArea>
 
-          <div className="p-8 border-t border-emerald-500/10 bg-gradient-to-r from-muted/50 via-transparent to-muted/50 rounded-b-3xl">
-            <div className="flex gap-4 max-w-3xl mx-auto">
+          <div className="p-5 md:p-6 border-t border-emerald-500/10 bg-muted/30 rounded-b-3xl">
+            <div className="flex gap-3 max-w-3xl mx-auto">
               <Input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={conversationId ? `Ask ${activeAgent.name} anything...` : "Initializing..."}
+                placeholder={conversationId ? `Message ${activeAgent.name}...` : "Connecting..."}
                 disabled={chatMutation.isPending || !conversationId}
-                className="h-14 text-lg px-6 rounded-xl border-emerald-500/20 focus:border-emerald-500/40 focus:ring-emerald-500/20"
+                className="h-12 text-[15px] px-5 rounded-xl bg-background border-border/60 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 placeholder:text-muted-foreground/60"
                 data-testid="input-agent-message"
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || chatMutation.isPending || !conversationId}
-                className="h-14 px-8 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg"
+                size="icon"
+                className="h-12 w-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md shrink-0"
                 data-testid="button-send-agent-message"
               >
-                <Send className="h-5 w-5 mr-2" />
-                Send
+                <Send className="h-5 w-5" />
               </Button>
             </div>
-            <div className="flex items-center justify-center gap-6 mt-4 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground/70">
               <span className="flex items-center gap-1.5">
-                <Shield className="h-4 w-4 text-emerald-500" />
-                Secured by Cardano
+                <Shield className="h-3.5 w-3.5 text-emerald-500/70" />
+                Cardano Secured
               </span>
+              <span className="text-muted-foreground/40">|</span>
               <span className="flex items-center gap-1.5">
-                <Zap className="h-4 w-4 text-teal-500" />
-                Hydra L2 Micropayments
+                <Zap className="h-3.5 w-3.5 text-teal-500/70" />
+                Hydra L2
               </span>
             </div>
           </div>
