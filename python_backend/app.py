@@ -22,6 +22,13 @@ from openai_service import get_agent_response, analyze_user_request
 from cardano_service import cardano_service
 from masumi_service import masumi_service
 from hydra_service import hydra_service
+from blockchain_activity import (
+    generate_blockchain_activities,
+    generate_network_status,
+    get_agent_masumi_profile,
+    get_all_agent_profiles,
+    is_simulation_mode
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -214,10 +221,21 @@ def chat():
             status="confirmed"
         )
 
+        blockchain_activities = generate_blockchain_activities(
+            agent_name=response_agent_name,
+            user_message=message,
+            include_collaboration=True
+        )
+        
+        agent_masumi_profile = get_agent_masumi_profile(response_agent_name)
+
         return jsonify({
             "userMessage": serialize_record(user_message),
             "agentMessage": serialize_record(agent_message),
-            "selectedAgent": response_agent_name
+            "selectedAgent": response_agent_name,
+            "blockchainActivities": blockchain_activities,
+            "agentProfile": agent_masumi_profile,
+            "isSimulationMode": is_simulation_mode()
         })
     except Exception as e:
         print(f"Error in chat: {e}")
@@ -564,6 +582,39 @@ def get_metrics():
     except Exception as e:
         print(f"Error fetching metrics: {e}")
         return jsonify({"error": "Failed to fetch metrics"}), 500
+
+@app.route('/api/blockchain/network-status', methods=['GET'])
+def get_full_network_status():
+    """Get comprehensive status of all blockchain networks"""
+    try:
+        return jsonify(generate_network_status())
+    except Exception as e:
+        print(f"Error getting network status: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/agent-profiles', methods=['GET'])
+def get_agent_blockchain_profiles():
+    """Get Masumi Network profiles for all agents"""
+    try:
+        profiles = get_all_agent_profiles()
+        return jsonify({
+            "agents": profiles,
+            "total": len(profiles),
+            "is_simulation_mode": is_simulation_mode()
+        })
+    except Exception as e:
+        print(f"Error getting agent profiles: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blockchain/agent-profiles/<agent_name>', methods=['GET'])
+def get_single_agent_profile(agent_name):
+    """Get Masumi Network profile for a specific agent"""
+    try:
+        profile = get_agent_masumi_profile(agent_name)
+        return jsonify(profile)
+    except Exception as e:
+        print(f"Error getting agent profile: {e}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)
