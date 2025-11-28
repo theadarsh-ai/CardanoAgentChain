@@ -45,11 +45,8 @@ export default function Architecture() {
                   className="flex gap-4 pb-4 border-b last:border-b-0"
                   data-testid={`tech-layer-${index + 1}`}
                 >
-                  <div className="relative shrink-0">
-                    <div className="absolute inset-0 bg-[#10FF00] blur-sm opacity-40 rounded-full" />
-                    <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#10FF00] to-[#00FF88] text-black text-sm font-bold">
-                      {index + 1}
-                    </div>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-md shrink-0">
+                    {index + 1}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-sm">{item.layer}</h3>

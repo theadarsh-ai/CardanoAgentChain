@@ -51,15 +51,12 @@ export default function AppSidebar() {
       <SidebarHeader className="p-6">
         <Link href="/">
           <div className="flex items-center gap-2 cursor-pointer" data-testid="link-home">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[#10FF00] blur-md opacity-40 rounded-md" />
-              <div className="relative w-8 h-8 rounded-md bg-gradient-to-br from-[#10FF00] to-[#00FF88] flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-black" />
-              </div>
+            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-bold">AgentHub</h1>
-              <p className="text-xs text-[#10FF00]/70">Powered by Cardano</p>
+              <p className="text-xs text-emerald-500">Powered by Cardano</p>
             </div>
           </div>
         </Link>

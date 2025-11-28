@@ -109,14 +109,11 @@ export default function ChatInterface() {
   return (
     <Card className="flex flex-col h-[600px]" data-testid="card-chat-interface">
       <div className="p-4 border-b flex items-center gap-3">
-        <div className="relative">
-          <div className="absolute inset-0 bg-[#10FF00] blur-md opacity-40 rounded-lg" />
-          <Avatar className="relative h-10 w-10 rounded-lg">
-            <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#10FF00] to-[#00FF88]">
-              <Sparkles className="h-5 w-5 text-black" />
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        <Avatar className="h-10 w-10 rounded-lg shadow-md">
+          <AvatarFallback className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+            <Sparkles className="h-5 w-5 text-white" />
+          </AvatarFallback>
+        </Avatar>
         <div>
           <h3 className="font-semibold">AgentHub Assistant</h3>
           <p className="text-sm text-muted-foreground">Powered by Cardano & Hydra Layer 2</p>
@@ -136,14 +133,11 @@ export default function ChatInterface() {
               data-testid={`message-${message.id}`}
             >
               {message.sender === "agent" && (
-                <div className="relative shrink-0">
-                  <div className="absolute inset-0 bg-[#10FF00] blur-sm opacity-30 rounded-lg" />
-                  <Avatar className="relative h-8 w-8 rounded-lg">
-                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#10FF00] to-[#00FF88] text-xs">
-                      <Sparkles className="h-4 w-4 text-black" />
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
+                <Avatar className="h-8 w-8 rounded-lg shrink-0 shadow-sm">
+                  <AvatarFallback className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-xs">
+                    <Sparkles className="h-4 w-4 text-white" />
+                  </AvatarFallback>
+                </Avatar>
               )}
               <div className={`flex flex-col ${message.sender === "user" ? "items-end" : ""} max-w-[70%]`}>
                 {message.sender === "agent" && message.agentName && (
@@ -164,14 +158,11 @@ export default function ChatInterface() {
           ))}
           {chatMutation.isPending && (
             <div className="flex gap-3">
-              <div className="relative shrink-0">
-                <div className="absolute inset-0 bg-[#10FF00] blur-sm opacity-30 rounded-lg" />
-                <Avatar className="relative h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#10FF00] to-[#00FF88] text-xs">
-                    <Sparkles className="h-4 w-4 text-black" />
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+              <Avatar className="h-8 w-8 rounded-lg shrink-0 shadow-sm">
+                <AvatarFallback className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-xs">
+                  <Sparkles className="h-4 w-4 text-white" />
+                </AvatarFallback>
+              </Avatar>
               <div className="flex items-center gap-2 bg-muted rounded-lg px-4 py-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm text-muted-foreground">Processing...</span>

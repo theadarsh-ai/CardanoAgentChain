@@ -4,45 +4,45 @@
 
 /* LIGHT MODE */
 :root {
-  --button-outline: rgba(16,255,0, .15);
-  --badge-outline: rgba(16,255,0, .08);
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(16,255,0, .05);
-  --elevate-2: rgba(16,255,0, .12);
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
   --background: 0 0% 100%;
   --foreground: 0 0% 9%;
-  --border: 120 100% 88%;
+  --border: 0 0% 91%;
   --card: 0 0% 98%;
   --card-foreground: 0 0% 9%;
-  --card-border: 120 100% 90%;
-  --sidebar: 120 100% 97%;
+  --card-border: 0 0% 94%;
+  --sidebar: 0 0% 96%;
   --sidebar-foreground: 0 0% 9%;
-  --sidebar-border: 120 100% 92%;
-  --sidebar-primary: 120 100% 35%;
-  --sidebar-primary-foreground: 120 100% 98%;
-  --sidebar-accent: 120 70% 90%;
-  --sidebar-accent-foreground: 120 70% 18%;
-  --sidebar-ring: 120 100% 40%;
+  --sidebar-border: 0 0% 92%;
+  --sidebar-primary: 158 64% 38%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 158 20% 92%;
+  --sidebar-accent-foreground: 158 40% 20%;
+  --sidebar-ring: 158 64% 38%;
   --popover: 0 0% 95%;
   --popover-foreground: 0 0% 9%;
-  --popover-border: 120 100% 90%;
-  --primary: 120 100% 38%;
-  --primary-foreground: 120 100% 98%;
-  --secondary: 120 50% 90%;
-  --secondary-foreground: 120 70% 15%;
-  --muted: 120 30% 92%;
-  --muted-foreground: 120 30% 38%;
-  --accent: 110 100% 88%;
-  --accent-foreground: 110 100% 20%;
+  --popover-border: 0 0% 90%;
+  --primary: 158 64% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 158 15% 92%;
+  --secondary-foreground: 158 30% 20%;
+  --muted: 210 10% 93%;
+  --muted-foreground: 210 10% 40%;
+  --accent: 158 30% 90%;
+  --accent-foreground: 158 50% 22%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 72% 98%;
-  --input: 120 100% 82%;
-  --ring: 120 100% 40%;
-  --chart-1: 120 100% 40%;
-  --chart-2: 110 95% 45%;
-  --chart-3: 130 90% 42%;
-  --chart-4: 100 85% 48%;
-  --chart-5: 115 100% 38%;
+  --input: 0 0% 75%;
+  --ring: 158 64% 38%;
+  --chart-1: 158 60% 40%;
+  --chart-2: 165 55% 42%;
+  --chart-3: 150 50% 38%;
+  --chart-4: 170 45% 40%;
+  --chart-5: 155 55% 36%;
   --font-sans: Inter, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: JetBrains Mono, monospace;
@@ -88,45 +88,45 @@
 }
 
 .dark {
-  --button-outline: rgba(16,255,0, .15);
-  --badge-outline: rgba(16,255,0, .10);
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(16,255,0, .08);
-  --elevate-2: rgba(16,255,0, .15);
-  --background: 0 0% 5%;
-  --foreground: 0 0% 96%;
-  --border: 120 100% 18%;
-  --card: 0 0% 8%;
-  --card-foreground: 0 0% 96%;
-  --card-border: 120 100% 15%;
-  --sidebar: 0 0% 9%;
-  --sidebar-foreground: 0 0% 96%;
-  --sidebar-border: 120 100% 16%;
-  --sidebar-primary: 120 100% 50%;
-  --sidebar-primary-foreground: 0 0% 5%;
-  --sidebar-accent: 120 100% 20%;
-  --sidebar-accent-foreground: 120 100% 90%;
-  --sidebar-ring: 120 100% 50%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 96%;
-  --popover-border: 120 100% 18%;
-  --primary: 120 100% 48%;
-  --primary-foreground: 0 0% 5%;
-  --secondary: 120 100% 22%;
-  --secondary-foreground: 120 100% 92%;
-  --muted: 120 50% 18%;
-  --muted-foreground: 120 50% 78%;
-  --accent: 110 100% 50%;
-  --accent-foreground: 0 0% 5%;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+  --background: 220 15% 6%;
+  --foreground: 0 0% 95%;
+  --border: 220 10% 18%;
+  --card: 220 15% 9%;
+  --card-foreground: 0 0% 95%;
+  --card-border: 220 10% 15%;
+  --sidebar: 220 15% 8%;
+  --sidebar-foreground: 0 0% 95%;
+  --sidebar-border: 220 10% 15%;
+  --sidebar-primary: 158 60% 40%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 15% 16%;
+  --sidebar-accent-foreground: 0 0% 90%;
+  --sidebar-ring: 158 60% 40%;
+  --popover: 220 15% 10%;
+  --popover-foreground: 0 0% 95%;
+  --popover-border: 220 10% 18%;
+  --primary: 158 60% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 15% 18%;
+  --secondary-foreground: 0 0% 90%;
+  --muted: 220 15% 15%;
+  --muted-foreground: 220 10% 60%;
+  --accent: 158 50% 35%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 48%;
   --destructive-foreground: 0 72% 98%;
-  --input: 0 0% 25%;
-  --ring: 120 100% 50%;
-  --chart-1: 120 100% 50%;
-  --chart-2: 110 95% 55%;
-  --chart-3: 130 90% 52%;
-  --chart-4: 100 85% 58%;
-  --chart-5: 115 100% 48%;
+  --input: 220 15% 20%;
+  --ring: 158 60% 40%;
+  --chart-1: 158 55% 42%;
+  --chart-2: 165 50% 45%;
+  --chart-3: 150 45% 40%;
+  --chart-4: 170 40% 42%;
+  --chart-5: 155 50% 38%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
@@ -286,28 +286,4 @@
     inset: -1px;
   }
 
-  /* Green glow effects for Cardano theme */
-  .glow-green {
-    box-shadow: 0 0 20px rgba(16, 255, 0, 0.3), 0 0 40px rgba(16, 255, 0, 0.1);
-  }
-  
-  .glow-green-sm {
-    box-shadow: 0 0 10px rgba(16, 255, 0, 0.2);
-  }
-  
-  .glow-green-lg {
-    box-shadow: 0 0 30px rgba(16, 255, 0, 0.4), 0 0 60px rgba(16, 255, 0, 0.2);
-  }
-  
-  .text-glow-green {
-    text-shadow: 0 0 10px rgba(16, 255, 0, 0.5);
-  }
-  
-  /* Gradient text for headings */
-  .gradient-text-green {
-    background: linear-gradient(135deg, #10FF00, #00FF88);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
 }

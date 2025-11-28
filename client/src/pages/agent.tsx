@@ -78,11 +78,8 @@ export default function AgentPage() {
       <Card>
         <CardHeader>
           <div className="flex items-start gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[#10FF00] blur-md opacity-30 rounded-lg" />
-              <div className="relative p-4 rounded-lg bg-gradient-to-br from-[#10FF00]/20 to-[#00FF88]/20">
-                <IconComponent className="h-8 w-8 text-[#10FF00]" />
-              </div>
+            <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 shadow-md">
+              <IconComponent className="h-8 w-8 text-emerald-500" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">

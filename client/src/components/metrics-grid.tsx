@@ -15,15 +15,15 @@ export default function MetricsGrid() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {metrics.map((metric) => (
-        <Card key={metric.label} className="border-[#10FF00]/20 hover:border-[#10FF00]/40 transition-colors" data-testid={metric.testId}>
+        <Card key={metric.label} className="hover:border-emerald-500/30 transition-colors" data-testid={metric.testId}>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {metric.label}
             </CardTitle>
-            <metric.icon className="h-4 w-4 text-[#10FF00]" />
+            <metric.icon className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono text-[#10FF00]" data-testid={`value-${metric.testId}`}>
+            <div className="text-2xl font-bold font-mono text-emerald-500" data-testid={`value-${metric.testId}`}>
               {metric.value}
             </div>
           </CardContent>
