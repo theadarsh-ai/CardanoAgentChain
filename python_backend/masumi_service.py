@@ -9,8 +9,6 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, asdict
 
-from blockchain_simulation import simulated_blockchain
-
 
 @dataclass
 class MasumiAgent:
@@ -158,16 +156,24 @@ class MasumiService:
                 result["status"] = "error"
         else:
             agents = []
-            if domain:
-                agents_list = simulated_blockchain.get_agents_by_domain(domain)
-            elif service:
-                agents_list = simulated_blockchain.get_agents_by_service(service)
-            else:
-                agents_list = simulated_blockchain.get_all_agents()
-            
-            for agent in agents_list:
-                if agent["reputation_score"] >= min_reputation:
-                    agents.append(agent)
+            for agent in self._agent_registry.values():
+                if domain and agent.domain != domain:
+                    continue
+                if service and service not in agent.services:
+                    continue
+                if agent.reputation_score < min_reputation:
+                    continue
+
+                agents.append({
+                    "did": agent.did,
+                    "name": agent.name,
+                    "domain": agent.domain,
+                    "services": agent.services,
+                    "reputation_score": agent.reputation_score,
+                    "total_transactions": agent.total_transactions,
+                    "average_response_time": agent.average_response_time,
+                    "is_verified": agent.is_verified
+                })
 
             result["agents"] = agents
             result["total"] = len(agents)
@@ -194,10 +200,17 @@ class MasumiService:
                 result["status"] = "not_found"
         else:
             agent_id = did.split(":")[-1]
-            agent = simulated_blockchain.get_agent(agent_id)
+            agent = self._agent_registry.get(agent_id)
 
             if agent:
-                result.update(agent)
+                result["name"] = agent.name
+                result["domain"] = agent.domain
+                result["services"] = agent.services
+                result["reputation_score"] = agent.reputation_score
+                result["total_transactions"] = agent.total_transactions
+                result["average_response_time"] = agent.average_response_time
+                result["registered_at"] = agent.registered_at
+                result["is_verified"] = agent.is_verified
                 result["status"] = "simulated"
             else:
                 result["status"] = "not_found"
@@ -337,12 +350,9 @@ class MasumiService:
             else:
                 result["status"] = "connection_error"
         else:
-            stats = simulated_blockchain.get_network_stats()
             result["version"] = "1.0.0-simulated"
-            result["total_agents"] = stats["masumi"]["total_agents"]
-            result["verified_agents"] = stats["masumi"]["verified_agents"]
-            result["total_transactions"] = sum(a["total_transactions"] for a in simulated_blockchain.get_all_agents())
-            result["active_agreements"] = stats["masumi"]["active_agreements"]
+            result["total_agents"] = len(self._agent_registry)
+            result["total_transactions"] = sum(a.total_transactions for a in self._agent_registry.values())
             result["status"] = "simulated"
             result["message"] = "Provide MASUMI_API_KEY to connect to live network"
 

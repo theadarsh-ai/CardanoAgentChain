@@ -17,15 +17,11 @@ from models import (
     generate_tx_hash,
     truncate_tx_hash
 )
-from agents import seed_agents, get_master_agent_prompt, AGENT_DEFINITIONS, get_agent_system_prompt
+from agents import seed_agents, get_master_agent_prompt, AGENT_DEFINITIONS
 from openai_service import get_agent_response, analyze_user_request
 from cardano_service import cardano_service
 from masumi_service import masumi_service
 from hydra_service import hydra_service
-from agent_data import (
-    get_agent_capabilities, get_protocol_info, get_market_data, 
-    get_knowledge, get_trending_services, get_performance_metrics, get_pricing
-)
 
 app = Flask(__name__)
 CORS(app)
@@ -158,36 +154,17 @@ def chat():
         if agent_name and agent_name != "AgentHub":
             selected_agent = AgentModel.get_by_name(agent_name)
             if selected_agent:
+                agent_system_prompt = selected_agent["system_prompt"]
                 response_agent_name = selected_agent["name"]
-                agent_system_prompt = get_agent_system_prompt(response_agent_name)
 
-        if not selected_agent:
-            # Keyword-based routing for specialized agents
-            msg_lower = message.lower()
-            if any(kw in msg_lower for kw in ["apy", "yield", "defi", "protocol", "liquidity", "farming", "pool", "apr"]):
-                selected_agent = AgentModel.get_by_name("YieldMaximizer")
-                if selected_agent:
-                    response_agent_name = "YieldMaximizer"
-                    agent_system_prompt = get_agent_system_prompt("YieldMaximizer")
-            elif any(kw in msg_lower for kw in ["price", "market", "btc", "eth", "cardano", "ada", "trading", "trend", "chart"]):
-                selected_agent = AgentModel.get_by_name("TradeMind")
-                if selected_agent:
-                    response_agent_name = "TradeMind"
-                    agent_system_prompt = get_agent_system_prompt("TradeMind")
-            elif any(kw in msg_lower for kw in ["email", "marketing", "campaign", "newsletter", "subject"]):
-                selected_agent = AgentModel.get_by_name("MailMind")
-                if selected_agent:
-                    response_agent_name = "MailMind"
-                    agent_system_prompt = get_agent_system_prompt("MailMind")
-        
         if not selected_agent:
             analysis = analyze_user_request(message)
 
             if analysis["selected_agents"] and analysis["selected_agents"][0] != "AgentHub":
                 selected_agent = AgentModel.get_by_name(analysis["selected_agents"][0])
                 if selected_agent:
+                    agent_system_prompt = selected_agent["system_prompt"]
                     response_agent_name = selected_agent["name"]
-                    agent_system_prompt = get_agent_system_prompt(response_agent_name)
 
         if not selected_agent:
             agent_system_prompt = get_master_agent_prompt()
@@ -539,36 +516,6 @@ def estimate_hydra_fees():
         print(f"Error estimating fees: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/blockchain/cardano/recent-transactions', methods=['GET'])
-def get_recent_l1_transactions():
-    """Get recent Cardano L1 transactions"""
-    try:
-        limit = int(request.args.get("limit", 20))
-        
-        result = cardano_service.get_recent_transactions(limit)
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error getting transactions: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/blockchain/network-stats', methods=['GET'])
-def get_network_stats():
-    """Get combined network statistics across all blockchains"""
-    try:
-        from blockchain_simulation import simulated_blockchain
-        
-        stats = simulated_blockchain.get_network_stats()
-        return jsonify({
-            "timestamp": datetime.now().isoformat(),
-            "cardano": stats["cardano"],
-            "masumi": stats["masumi"],
-            "hydra": stats["hydra"],
-            "is_simulated": True
-        })
-    except Exception as e:
-        print(f"Error getting network stats: {e}")
-        return jsonify({"error": str(e)}), 500
-
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
     """Get recent transactions."""
@@ -617,68 +564,6 @@ def get_metrics():
     except Exception as e:
         print(f"Error fetching metrics: {e}")
         return jsonify({"error": "Failed to fetch metrics"}), 500
-
-# Agent Data & Information APIs
-
-@app.route('/api/data/agent-capabilities', methods=['GET'])
-def agent_capabilities_endpoint():
-    """Get agent capabilities"""
-    try:
-        agent_name = request.args.get("agent")
-        return jsonify(get_agent_capabilities(agent_name))
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/data/protocols', methods=['GET'])
-def protocols_endpoint():
-    """Get protocol information"""
-    try:
-        protocol_name = request.args.get("protocol")
-        return jsonify(get_protocol_info(protocol_name))
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/data/market', methods=['GET'])
-def market_data_endpoint():
-    """Get market data"""
-    try:
-        asset = request.args.get("asset")
-        return jsonify(get_market_data(asset))
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/data/knowledge', methods=['GET'])
-def knowledge_endpoint():
-    """Get knowledge base"""
-    try:
-        topic = request.args.get("topic")
-        return jsonify(get_knowledge(topic))
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/data/trending', methods=['GET'])
-def trending_endpoint():
-    """Get trending services"""
-    try:
-        return jsonify(get_trending_services())
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/data/performance', methods=['GET'])
-def performance_endpoint():
-    """Get performance metrics"""
-    try:
-        return jsonify(get_performance_metrics())
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/data/pricing', methods=['GET'])
-def pricing_endpoint():
-    """Get pricing information"""
-    try:
-        return jsonify(get_pricing())
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=False)
