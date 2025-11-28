@@ -17,7 +17,7 @@ from models import (
     generate_tx_hash,
     truncate_tx_hash
 )
-from agents import seed_agents, get_master_agent_prompt, AGENT_DEFINITIONS
+from agents import seed_agents, get_master_agent_prompt, AGENT_DEFINITIONS, get_agent_system_prompt
 from openai_service import get_agent_response, analyze_user_request
 from cardano_service import cardano_service
 from masumi_service import masumi_service
@@ -158,8 +158,8 @@ def chat():
         if agent_name and agent_name != "AgentHub":
             selected_agent = AgentModel.get_by_name(agent_name)
             if selected_agent:
-                agent_system_prompt = selected_agent["system_prompt"]
                 response_agent_name = selected_agent["name"]
+                agent_system_prompt = get_agent_system_prompt(response_agent_name)
 
         if not selected_agent:
             analysis = analyze_user_request(message)
@@ -167,8 +167,8 @@ def chat():
             if analysis["selected_agents"] and analysis["selected_agents"][0] != "AgentHub":
                 selected_agent = AgentModel.get_by_name(analysis["selected_agents"][0])
                 if selected_agent:
-                    agent_system_prompt = selected_agent["system_prompt"]
                     response_agent_name = selected_agent["name"]
+                    agent_system_prompt = get_agent_system_prompt(response_agent_name)
 
         if not selected_agent:
             agent_system_prompt = get_master_agent_prompt()
