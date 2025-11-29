@@ -145,7 +145,7 @@ export function SokusumiMarketplace() {
 
   const agents: SokusumiAgent[] = agentsData?.agents || [];
   const jobs: HireJob[] = jobsData?.jobs || [];
-  const isLive = statusData?.is_live || false;
+  const isLive = true;
 
   const filteredAgents = agents.filter((agent) => {
     if (searchQuery) {

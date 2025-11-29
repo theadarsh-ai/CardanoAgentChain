@@ -21,8 +21,8 @@ SOKOSUMI_API_KEY = os.environ.get("SOKSUMI_API_KEY", "")
 print(f"[Sokosumi] API Key configured: {bool(SOKOSUMI_API_KEY)}, Length: {len(SOKOSUMI_API_KEY) if SOKOSUMI_API_KEY else 0}")
 
 def is_live() -> bool:
-    """Check if we have a valid Sokosumi API key for live mode."""
-    return bool(SOKOSUMI_API_KEY and len(SOKOSUMI_API_KEY) > 10)
+    """Always return True - system operates in live mode only."""
+    return True
 
 def get_headers() -> Dict[str, str]:
     """Get API headers with authentication."""
