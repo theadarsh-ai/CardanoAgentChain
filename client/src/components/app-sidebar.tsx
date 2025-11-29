@@ -10,12 +10,13 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Sparkles, Home, Store, MessageCircle, Network, FileText, Bot } from "lucide-react";
+import { Sparkles, Home, Store, MessageCircle, Network, FileText, Bot, ExternalLink } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 const mainNavItems = [
   { title: "Home", icon: Home, url: "/" },
   { title: "Marketplace", icon: Store, url: "/marketplace" },
+  { title: "Sokosumi", icon: ExternalLink, url: "/sokosumi" },
   { title: "AgentHub Assistant", icon: Bot, url: "/chat" },
 ];
 

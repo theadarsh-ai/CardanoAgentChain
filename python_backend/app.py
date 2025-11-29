@@ -29,6 +29,7 @@ from blockchain_activity import (
     get_all_agent_profiles,
     is_simulation_mode
 )
+import sokosumi_service
 
 app = Flask(__name__)
 CORS(app)
@@ -614,6 +615,89 @@ def get_single_agent_profile(agent_name):
         return jsonify(profile)
     except Exception as e:
         print(f"Error getting agent profile: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sokosumi/agents', methods=['GET'])
+def get_sokosumi_agents():
+    """Get available agents from Sokosumi marketplace"""
+    try:
+        category = request.args.get("category")
+        limit = int(request.args.get("limit", 10))
+        result = sokosumi_service.list_agents(category=category, limit=limit)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error fetching Sokosumi agents: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sokosumi/agents/<agent_id>', methods=['GET'])
+def get_sokosumi_agent(agent_id):
+    """Get details of a specific Sokosumi agent"""
+    try:
+        result = sokosumi_service.get_agent(agent_id)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error fetching Sokosumi agent: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sokosumi/hire', methods=['POST'])
+def hire_sokosumi_agent():
+    """Hire a Sokosumi agent for a task"""
+    try:
+        data = request.get_json()
+        agent_id = data.get("agentId")
+        task = data.get("task")
+        requester = data.get("requesterAgent")
+        
+        if not agent_id or not task:
+            return jsonify({"error": "agentId and task are required"}), 400
+        
+        result = sokosumi_service.hire_agent(agent_id, task, requester)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error hiring Sokosumi agent: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sokosumi/jobs', methods=['GET'])
+def get_sokosumi_jobs():
+    """Get all active Sokosumi jobs"""
+    try:
+        result = sokosumi_service.list_active_jobs()
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error fetching Sokosumi jobs: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sokosumi/jobs/<job_id>', methods=['GET'])
+def get_sokosumi_job(job_id):
+    """Get status of a specific Sokosumi job"""
+    try:
+        result = sokosumi_service.get_job_status(job_id)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error fetching Sokosumi job: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sokosumi/account', methods=['GET'])
+def get_sokosumi_account():
+    """Get Sokosumi account information"""
+    try:
+        result = sokosumi_service.get_account_info()
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error fetching Sokosumi account: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sokosumi/status', methods=['GET'])
+def get_sokosumi_status():
+    """Get Sokosumi service status"""
+    try:
+        return jsonify({
+            "is_live": sokosumi_service.is_live(),
+            "api_url": sokosumi_service.SOKOSUMI_API_URL,
+            "has_api_key": bool(sokosumi_service.SOKOSUMI_API_KEY)
+        })
+    except Exception as e:
+        print(f"Error getting Sokosumi status: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
