@@ -75,6 +75,15 @@ Optional blockchain API keys (for live blockchain integration):
 
 ## Recent Changes
 
+- **November 2025**: Automatic Agent-to-Agent Collaboration
+  - AgentHub agents can now automatically hire Sokosumi agents for specialized tasks
+  - AI-powered analysis determines when external expertise is needed
+  - Real-time collaboration: agents hire, execute, and integrate results
+  - Collaboration UI shows hired agents, tasks, costs, and job status
+  - Blockchain activity displays Sokosumi hiring transactions
+  - Cost tracking with Hydra L2 micropayments
+  - Works in simulation mode; connects to live API when SOKSUMI_API_KEY provided
+
 - **November 2025**: Sokosumi Marketplace Integration
   - Added Sokosumi AI Agent Marketplace integration (https://sokosumi.com)
   - Browse and hire specialized agents from the Masumi Network ecosystem

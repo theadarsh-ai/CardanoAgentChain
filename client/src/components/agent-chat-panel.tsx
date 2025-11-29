@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { BlockchainActivityDisplay } from "@/components/blockchain-activity";
+import { CollaborationDisplay } from "@/components/collaboration-display";
 
 function formatMarkdown(text: string): JSX.Element[] {
   const lines = text.split('\n');
@@ -70,6 +71,23 @@ interface AgentProfile {
   verified: boolean;
 }
 
+interface CollaborationSummary {
+  collaborated: boolean;
+  agents_hired?: number;
+  successful_hires?: number;
+  total_cost_usd?: number;
+  agents?: Array<{
+    name: string;
+    task: string;
+    status: string;
+    job_id?: string;
+    cost: number;
+    is_simulated: boolean;
+  }>;
+  payment_method?: string;
+  is_simulated?: boolean;
+}
+
 interface Message {
   id: string;
   content: string;
@@ -78,6 +96,7 @@ interface Message {
   blockchainActivities?: BlockchainActivity[];
   agentProfile?: AgentProfile;
   isSimulationMode?: boolean;
+  collaboration?: CollaborationSummary;
 }
 
 const iconMap: Record<string, React.ElementType> = {
@@ -201,6 +220,7 @@ export default function AgentChatPanel() {
         blockchainActivities: data.blockchainActivities || [],
         agentProfile: data.agentProfile || null,
         isSimulationMode: data.isSimulationMode ?? true,
+        collaboration: data.collaboration || null,
       };
       setMessages((prev) => [...prev, agentMessage]);
     },
@@ -402,6 +422,11 @@ export default function AgentChatPanel() {
                         {message.sender === "agent" ? formatMarkdown(message.content) : message.content}
                       </div>
                     </div>
+                    {message.sender === "agent" && message.collaboration?.collaborated && (
+                      <div className="w-full">
+                        <CollaborationDisplay collaboration={message.collaboration} />
+                      </div>
+                    )}
                     {message.sender === "agent" && message.blockchainActivities && message.blockchainActivities.length > 0 && (
                       <div className="w-full mt-2">
                         <BlockchainActivityDisplay
