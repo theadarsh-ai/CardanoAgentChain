@@ -18,9 +18,13 @@ import random
 SOKOSUMI_API_URL = os.environ.get("SOKOSUMI_API_URL", "https://app.sokosumi.com")
 SOKOSUMI_API_KEY = os.environ.get("SOKSUMI_API_KEY", "")
 
+print(f"[Sokosumi] API Key configured: {bool(SOKOSUMI_API_KEY)}, Length: {len(SOKOSUMI_API_KEY) if SOKOSUMI_API_KEY else 0}")
+
 def is_live() -> bool:
     """Check if we have a valid Sokosumi API key for live mode."""
-    return bool(SOKOSUMI_API_KEY and len(SOKOSUMI_API_KEY) > 20)
+    has_key = bool(SOKOSUMI_API_KEY and len(SOKOSUMI_API_KEY) > 10)
+    print(f"[Sokosumi] is_live check: {has_key}")
+    return has_key
 
 def get_headers() -> Dict[str, str]:
     """Get API headers with authentication."""
@@ -162,25 +166,33 @@ def list_agents(category: Optional[str] = None, limit: int = 10) -> Dict[str, An
             if category:
                 params["category"] = category
             
+            url = f"{SOKOSUMI_API_URL}/api/agents"
+            print(f"[Sokosumi] Calling API: {url}")
+            
             response = requests.get(
-                f"{SOKOSUMI_API_URL}/api/agents",
+                url,
                 headers=get_headers(),
                 params=params,
                 timeout=10
             )
             
+            print(f"[Sokosumi] Response status: {response.status_code}")
+            
             if response.status_code == 200:
+                data = response.json()
+                agents = data.get("agents", data if isinstance(data, list) else [])
+                print(f"[Sokosumi] Got {len(agents)} agents from live API")
                 return {
                     "success": True,
                     "is_live": True,
-                    "agents": response.json().get("agents", []),
-                    "total": response.json().get("total", 0),
+                    "agents": agents,
+                    "total": len(agents),
                     "source": "sokosumi_api"
                 }
             else:
-                print(f"Sokosumi API error: {response.status_code} - {response.text}")
+                print(f"[Sokosumi] API error: {response.status_code} - {response.text[:500]}")
         except requests.RequestException as e:
-            print(f"Sokosumi API request failed: {e}")
+            print(f"[Sokosumi] API request failed: {e}")
     
     agents = SIMULATED_SOKOSUMI_AGENTS
     if category:
