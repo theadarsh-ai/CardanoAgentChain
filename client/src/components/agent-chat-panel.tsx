@@ -11,6 +11,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { BlockchainActivityDisplay } from "@/components/blockchain-activity";
 import { CollaborationDisplay } from "@/components/collaboration-display";
+import { LiveCollaborationDisplay } from "@/components/live-collaboration-display";
+import { useCollaborationSocket } from "@/hooks/use-collaboration-socket";
 
 function formatMarkdown(text: string): JSX.Element[] {
   const lines = text.split('\n');
@@ -138,8 +140,11 @@ export default function AgentChatPanel() {
   const [input, setInput] = useState("");
   const [deployMessageIndex, setDeployMessageIndex] = useState(0);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [showLiveCollab, setShowLiveCollab] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const { isConnected, liveAgents, clearLiveAgents } = useCollaborationSocket();
 
   const IconComponent = activeAgent?.icon ? iconMap[activeAgent.icon] || Bot : Bot;
   const memeImage = activeAgent?.name ? memeMap[activeAgent.name] : null;
@@ -204,6 +209,8 @@ export default function AgentChatPanel() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
+      setShowLiveCollab(true);
+      clearLiveAgents();
       const response = await apiRequest("POST", "/api/chat", {
         conversationId: conversationId,
         message,
@@ -212,6 +219,7 @@ export default function AgentChatPanel() {
       return response.json();
     },
     onSuccess: (data) => {
+      setShowLiveCollab(false);
       const agentMessage: Message = {
         id: Date.now().toString(),
         content: data.agentMessage?.content || data.response || "I received your message.",
@@ -226,6 +234,7 @@ export default function AgentChatPanel() {
     },
     onError: (error) => {
       console.error("Chat error:", error);
+      setShowLiveCollab(false);
       const errorMessage: Message = {
         id: Date.now().toString(),
         content: "Sorry, I encountered an error processing your request. Please try again.",
@@ -456,14 +465,21 @@ export default function AgentChatPanel() {
                       <IconComponent className="h-5 w-5 text-white" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start">
+                  <div className="flex flex-col items-start w-full max-w-[80%]">
                     <span className="text-xs font-medium text-emerald-500 mb-1.5 ml-1">
                       {activeAgent.name}
                     </span>
                     <div className="flex items-center gap-3 bg-muted border border-border/40 rounded-2xl rounded-bl-md px-5 py-3.5">
                       <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
-                      <span className="text-[15px] text-muted-foreground">Thinking...</span>
+                      <span className="text-[15px] text-muted-foreground">
+                        {liveAgents.length > 0 ? "Collaborating with agents..." : "Thinking..."}
+                      </span>
                     </div>
+                    {showLiveCollab && liveAgents.length > 0 && (
+                      <div className="w-full">
+                        <LiveCollaborationDisplay liveAgents={liveAgents} isConnected={isConnected} />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
