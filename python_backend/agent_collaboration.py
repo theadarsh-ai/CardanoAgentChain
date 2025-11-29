@@ -81,7 +81,10 @@ def analyze_collaboration_need(
     Returns:
         Dictionary with collaboration decision and recommended agents
     """
+    print(f"[Collaboration] analyze_collaboration_need called for {agent_name}")
+    
     if not OPENAI_API_KEY:
+        print("[Collaboration] No OpenAI API key - skipping")
         return {
             "needs_collaboration": False,
             "reason": "OpenAI API key not available",
@@ -307,12 +310,17 @@ def execute_collaboration(
     Returns:
         Tuple of (collaboration_occurred, hiring_results, context_string)
     """
+    print(f"[Collaboration] Starting for agent: {agent_name}, message: {user_message[:50]}...")
+    
     analysis = analyze_collaboration_need(agent_name, user_message)
+    print(f"[Collaboration] Analysis result: needs={analysis.get('needs_collaboration')}, confidence={analysis.get('confidence')}")
     
     if not analysis.get("needs_collaboration"):
+        print("[Collaboration] Not needed - returning False")
         return False, [], ""
     
     if analysis.get("confidence", 0) < 0.3:
+        print(f"[Collaboration] Confidence too low: {analysis.get('confidence')}")
         return False, [], ""
     
     recommendations = analysis.get("recommended_agents", [])
