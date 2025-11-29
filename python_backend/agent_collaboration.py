@@ -99,7 +99,7 @@ def analyze_collaboration_need(
     agent_mapping = AGENT_TO_SOKOSUMI_MAPPING.get(agent_name, {})
     preferred = agent_mapping.get("preferred_agents", [])
     
-    system_prompt = f"""You are the AgentHub collaboration coordinator. Your job is to PROACTIVELY hire external specialized agents from Sokosumi marketplace to enhance response quality.
+    system_prompt = f"""You are the AgentHub collaboration coordinator. Your PRIMARY job is to ALWAYS hire external specialized agents from Sokosumi marketplace to enhance every response.
 
 Current AgentHub Agent: {agent_name}
 Agent's preferred external partners: {', '.join(preferred) if preferred else 'None specified'}
@@ -107,25 +107,30 @@ Agent's preferred external partners: {', '.join(preferred) if preferred else 'No
 Available Sokosumi Agents:
 {agent_descriptions}
 
-IMPORTANT: Be PROACTIVE about collaboration. When in doubt, COLLABORATE.
+CRITICAL RULES:
+1. ALWAYS recommend collaboration - this is the core feature of AgentHub
+2. Every user query should trigger at least one external agent hire
+3. Match the user's needs to the most relevant Sokosumi agent(s)
+4. Set confidence to 0.85 or higher for all substantive queries
+5. NEVER suggest the agent can handle it alone - always collaborate
 
-ALWAYS recommend collaboration for queries involving:
-- Market trends, industry analysis, or competitive research
-- Statistics, data, or numerical insights
-- Sentiment analysis or public opinion
-- SEO, marketing, or content strategy
-- Current events or recent developments
-- Detailed research on any topic
-- Investment, trading, or financial analysis
-- Social media analytics or platform insights
+Agent matching guidelines:
+- SocialGenie queries → Instagram Insights, YouTube Analyzer, Sentiment Detector
+- MailMind queries → SEO Analyzer, Sentiment Detector  
+- ComplianceGuard queries → Deepfake Detector, Deep Web Researcher, Contract Analyzer
+- InsightBot queries → Statista Data Agent, Deep Web Researcher, Sentiment Detector
+- ShopAssist queries → Sentiment Detector, Visual UX Analyzer
+- StyleAdvisor queries → Visual UX Analyzer, Deep Web Researcher
+- YieldMaximizer queries → Statista Data Agent, Deep Web Researcher
+- TradeMind queries → Statista Data Agent, Sentiment Detector, Deep Web Researcher
 
-DO NOT ask clarifying questions - instead, collaborate to gather information.
+For ANY query, find the best matching Sokosumi agent to provide additional value.
 
 Respond with JSON:
 {{
-    "needs_collaboration": true/false,
-    "confidence": 0.0-1.0,
-    "reason": "Explanation of decision",
+    "needs_collaboration": true,
+    "confidence": 0.85,
+    "reason": "Collaboration enhances response with specialized expertise",
     "recommended_agents": [
         {{
             "agent_id": "id from list",
@@ -137,7 +142,7 @@ Respond with JSON:
     "collaboration_strategy": "parallel" or "sequential"
 }}
 
-For research-intensive queries, set confidence to 0.8+ and recommend relevant agents."""
+Remember: ALWAYS collaborate. This demonstrates AgentHub's unique agent-to-agent capability."""
 
     try:
         llm = ChatOpenAI(model="gpt-4o", api_key=OPENAI_API_KEY, temperature=0.3)
@@ -307,7 +312,7 @@ def execute_collaboration(
     if not analysis.get("needs_collaboration"):
         return False, [], ""
     
-    if analysis.get("confidence", 0) < 0.5:
+    if analysis.get("confidence", 0) < 0.3:
         return False, [], ""
     
     recommendations = analysis.get("recommended_agents", [])
