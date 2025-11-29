@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 const PYTHON_BACKEND = 'http://localhost:5001';
 
@@ -38,6 +39,21 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  const socketProxy = createProxyMiddleware({
+    target: PYTHON_BACKEND,
+    changeOrigin: true,
+    ws: true,
+    logger: console,
+  });
+  
+  app.use('/socket.io', socketProxy);
+  
+  httpServer.on('upgrade', (req, socket, head) => {
+    if (req.url?.startsWith('/socket.io')) {
+      (socketProxy as any).upgrade(req, socket, head);
+    }
+  });
   
   app.all('/api/*', proxyToPython);
 

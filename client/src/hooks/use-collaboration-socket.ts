@@ -32,9 +32,8 @@ export function useCollaborationSocket() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const backendUrl = window.location.origin.replace(':5000', ':5001');
-    
-    const socket = io(backendUrl, {
+    const socket = io(window.location.origin, {
+      path: "/socket.io",
       transports: ["websocket", "polling"],
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
