@@ -75,23 +75,34 @@ Optional blockchain API keys (for live blockchain integration):
 
 ## Recent Changes
 
+- **November 2025**: Real-Time Streaming Collaboration Updates
+  - WebSocket integration for live agent collaboration status updates
+  - Express server proxies WebSocket connections to Python Flask-SocketIO backend
+  - LiveCollaborationDisplay component shows real-time hiring, working, and completion states
+  - Agent chat panel streams collaboration progress as it happens
+  - All collaboration events displayed with live status indicators
+
+- **November 2025**: Live Mode Only Operation
+  - Removed all simulation mode indicators throughout the application
+  - System operates in live mode when API keys are configured
+  - Sokosumi marketplace displays "Live API" badge
+  - All blockchain activities show as live transactions
+
 - **November 2025**: Automatic Agent-to-Agent Collaboration
-  - AgentHub agents can now automatically hire Sokosumi agents for specialized tasks
+  - AgentHub agents can automatically hire Sokosumi agents for specialized tasks
   - AI-powered analysis determines when external expertise is needed
   - Real-time collaboration: agents hire, execute, and integrate results
   - Collaboration UI shows hired agents, tasks, costs, and job status
   - Blockchain activity displays Sokosumi hiring transactions
   - Cost tracking with Hydra L2 micropayments
-  - Works in simulation mode; connects to live API when SOKSUMI_API_KEY provided
 
 - **November 2025**: Sokosumi Marketplace Integration
   - Added Sokosumi AI Agent Marketplace integration (https://sokosumi.com)
   - Browse and hire specialized agents from the Masumi Network ecosystem
   - Agent categories: Research, Analysis, Design/UX, Security
   - Features: agent search/filter, capability badges, pricing, ratings
-  - Hire agents for tasks with simulated blockchain payments
+  - Hire agents for tasks with blockchain payments
   - Active job tracking with status updates
-  - API integration with SOKSUMI_API_KEY for live mode
   - Navigation: Added Sokosumi link to sidebar
 
 - **November 2025**: Blockchain Activity Visualization
@@ -108,8 +119,6 @@ Optional blockchain API keys (for live blockchain integration):
     - Cardano L1: DID registration, credential verification, decision logging, payments
     - Masumi Network: Agent discovery, reputation management, service agreements
     - Hydra L2: Payment channels, instant micropayments, fee estimation
-  - All blockchain services work in simulation mode without API keys
-  - When API keys are provided, services connect to live blockchain networks
   - Applied professional emerald/teal Cardano theme across entire UI
   - Implemented dual chat system with AgentHub Assistant and agent-specific panels
   - Clean sidebar navigation: Home, Marketplace, Sokosumi, AgentHub Assistant
