@@ -3,7 +3,10 @@ import json
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
+import time
+import threading
 
 load_dotenv()
 
@@ -33,11 +36,23 @@ import sokosumi_service
 from agent_collaboration import (
     execute_collaboration,
     get_collaboration_summary,
-    analyze_collaboration_need
+    analyze_collaboration_need,
+    set_emit_callback
 )
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+def emit_collaboration_update(event_type: str, data: dict):
+    """Emit real-time collaboration updates via WebSocket"""
+    socketio.emit('collaboration_update', {
+        'type': event_type,
+        'data': data,
+        'timestamp': datetime.now().isoformat()
+    })
+
+set_emit_callback(emit_collaboration_update)
 
 init_db()
 seed_agents()
@@ -769,5 +784,31 @@ def get_sokosumi_status():
         print(f"Error getting Sokosumi status: {e}")
         return jsonify({"error": str(e)}), 500
 
+@socketio.on('connect')
+def handle_connect():
+    """Handle WebSocket connection"""
+    print("[WebSocket] Client connected")
+    emit('connected', {'status': 'connected', 'message': 'Connected to AgentHub real-time updates'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle WebSocket disconnection"""
+    print("[WebSocket] Client disconnected")
+
+@socketio.on('subscribe_collaboration')
+def handle_subscribe(data):
+    """Subscribe to collaboration updates for a conversation"""
+    conversation_id = data.get('conversation_id')
+    print(f"[WebSocket] Client subscribed to collaboration updates for {conversation_id}")
+    emit('subscribed', {'conversation_id': conversation_id})
+
+def emit_collaboration_event(event_type: str, data: dict):
+    """Emit a collaboration event to all connected clients"""
+    socketio.emit('collaboration_update', {
+        'type': event_type,
+        'data': data,
+        'timestamp': datetime.now().isoformat()
+    })
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=False)
+    socketio.run(app, host='0.0.0.0', port=5001, debug=False, allow_unsafe_werkzeug=True)

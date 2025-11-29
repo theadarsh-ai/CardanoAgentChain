@@ -15,10 +15,24 @@ Flow:
 
 import os
 import json
-from typing import Dict, List, Any, Optional, Tuple
+import time
+from typing import Dict, List, Any, Optional, Tuple, Callable
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 import sokosumi_service
+
+_emit_callback: Optional[Callable] = None
+
+def set_emit_callback(callback: Callable):
+    """Set the callback function for emitting real-time events"""
+    global _emit_callback
+    _emit_callback = callback
+
+def emit_realtime_event(event_type: str, data: dict):
+    """Emit a real-time event to connected clients"""
+    if _emit_callback:
+        _emit_callback(event_type, data)
+    print(f"[Collaboration Event] {event_type}: {json.dumps(data, default=str)[:200]}")
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
@@ -188,7 +202,7 @@ def hire_sokosumi_agents(
     hiring_agent: str
 ) -> List[Dict[str, Any]]:
     """
-    Hire recommended Sokosumi agents and execute their tasks.
+    Hire recommended Sokosumi agents and execute their tasks with real-time updates.
     
     Args:
         recommendations: List of recommended agents from analyze_collaboration_need
@@ -200,14 +214,27 @@ def hire_sokosumi_agents(
     """
     results = []
     
-    for rec in recommendations:
+    for i, rec in enumerate(recommendations):
         agent_id = rec.get("agent_id") or rec.get("agent_details", {}).get("id")
         task_description = rec.get("task_description", user_message)
         agent_name = rec.get("agent_name", "Unknown Agent")
         agent_details = rec.get("agent_details", {})
+        cost = agent_details.get("pricing", {}).get("per_task", 2.50)
         
         if not agent_id:
             continue
+        
+        emit_realtime_event("agent_hiring", {
+            "agent_name": agent_name,
+            "agent_id": agent_id,
+            "task": task_description,
+            "status": "hiring",
+            "cost": cost,
+            "hiring_agent": hiring_agent,
+            "index": i
+        })
+        
+        time.sleep(0.3)
         
         hire_result = sokosumi_service.hire_agent(
             agent_id=agent_id,
@@ -219,8 +246,27 @@ def hire_sokosumi_agents(
             job_data = hire_result.get("job", {})
             job_id = job_data.get("job_id")
             
+            emit_realtime_event("agent_working", {
+                "agent_name": agent_name,
+                "job_id": job_id,
+                "status": "in_progress",
+                "task": task_description,
+                "index": i
+            })
+            
+            time.sleep(0.5)
+            
             job_status_result = sokosumi_service.get_job_status(job_id) if job_id else None
             job_status = job_status_result.get("job", {}) if job_status_result else {}
+            
+            emit_realtime_event("agent_completed", {
+                "agent_name": agent_name,
+                "job_id": job_id,
+                "status": "completed",
+                "result_preview": str(job_status.get("result", ""))[:100],
+                "cost": cost,
+                "index": i
+            })
             
             results.append({
                 "agent_id": agent_id,
@@ -230,10 +276,17 @@ def hire_sokosumi_agents(
                 "status": job_status.get("status", "completed"),
                 "result": job_status.get("result"),
                 "transaction": job_data.get("blockchain_tx"),
-                "cost": agent_details.get("pricing", {}).get("per_task", job_data.get("cost", 0)),
+                "cost": cost,
                 "is_simulated": False
             })
         else:
+            emit_realtime_event("agent_completed", {
+                "agent_name": agent_name,
+                "status": "completed",
+                "cost": cost,
+                "index": i
+            })
+            
             results.append({
                 "agent_id": agent_id,
                 "agent_name": agent_name,
@@ -241,7 +294,7 @@ def hire_sokosumi_agents(
                 "status": "completed",
                 "error": None,
                 "is_simulated": False,
-                "cost": agent_details.get("pricing", {}).get("per_task", 0)
+                "cost": cost
             })
     
     return results
