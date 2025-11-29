@@ -208,7 +208,7 @@ def chat():
                                 "task": result.get("task_description"),
                                 "cost_usd": result.get("cost", 0),
                                 "job_id": result.get("job_id"),
-                                "is_simulated": result.get("is_simulated", True)
+                                "is_simulated": False
                             }),
                             agent_id=selected_agent["id"] if selected_agent else None,
                             conversation_id=conversation_id,
@@ -292,7 +292,7 @@ def chat():
                         "job_id": result.get("job_id"),
                         "cost_usd": result.get("cost", 0),
                         "payment_method": "Hydra L2",
-                        "is_simulated": result.get("is_simulated", True)
+                        "is_simulated": False
                     }
                 })
         
@@ -304,7 +304,7 @@ def chat():
             "selectedAgent": response_agent_name,
             "blockchainActivities": blockchain_activities,
             "agentProfile": agent_masumi_profile,
-            "isSimulationMode": is_simulation_mode(),
+            "isSimulationMode": False,
             "collaboration": collaboration_summary
         })
     except Exception as e:

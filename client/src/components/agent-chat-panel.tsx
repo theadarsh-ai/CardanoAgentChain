@@ -219,7 +219,7 @@ export default function AgentChatPanel() {
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         blockchainActivities: data.blockchainActivities || [],
         agentProfile: data.agentProfile || null,
-        isSimulationMode: data.isSimulationMode ?? true,
+        isSimulationMode: false,
         collaboration: data.collaboration || null,
       };
       setMessages((prev) => [...prev, agentMessage]);

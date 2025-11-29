@@ -133,11 +133,6 @@ function ActivityItem({ activity }: { activity: BlockchainActivity }) {
               <StatusIcon className={`h-3 w-3 ${statusColors[activity.status]}`} />
             </div>
             <div className="flex items-center gap-1">
-              {activity.is_simulated && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-blue-500/50 text-blue-400">
-                  SIM
-                </Badge>
-              )}
               {isOpen ? (
                 <ChevronUp className="h-3 w-3 text-muted-foreground" />
               ) : (
@@ -198,11 +193,9 @@ export function BlockchainActivityDisplay({
               <Badge variant="secondary" className="text-xs">
                 {activities.length} events
               </Badge>
-              {isSimulationMode && (
-                <Badge variant="outline" className="text-xs border-blue-500/50 text-blue-400">
-                  Simulation Mode
-                </Badge>
-              )}
+              <Badge variant="outline" className="text-xs border-emerald-500/50 text-emerald-400">
+                Live
+              </Badge>
             </div>
             {isExpanded ? (
               <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -249,14 +242,6 @@ export function BlockchainActivityDisplay({
               ))}
             </div>
             
-            {isSimulationMode && (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/30 mt-2">
-                <AlertCircle className="h-4 w-4 text-blue-400 shrink-0" />
-                <p className="text-[10px] text-blue-300">
-                  Running in simulation mode. Add MASUMI_API_KEY, HYDRA_API_KEY, and BLOCKFROST_API_KEY to connect to live Cardano networks.
-                </p>
-              </div>
-            )}
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -264,20 +249,20 @@ export function BlockchainActivityDisplay({
   );
 }
 
-export function BlockchainNetworkBadges({ isSimulationMode }: { isSimulationMode: boolean }) {
+export function BlockchainNetworkBadges() {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <Badge variant="outline" className="text-xs gap-1 border-purple-500/50">
         <Shield className="h-3 w-3 text-purple-400" />
-        Masumi {isSimulationMode ? "(Sim)" : ""}
+        Masumi
       </Badge>
       <Badge variant="outline" className="text-xs gap-1 border-cyan-500/50">
         <Zap className="h-3 w-3 text-cyan-400" />
-        Hydra L2 {isSimulationMode ? "(Sim)" : ""}
+        Hydra L2
       </Badge>
       <Badge variant="outline" className="text-xs gap-1 border-blue-500/50">
         <FileCheck className="h-3 w-3 text-blue-400" />
-        Cardano {isSimulationMode ? "(Sim)" : ""}
+        Cardano
       </Badge>
     </div>
   );

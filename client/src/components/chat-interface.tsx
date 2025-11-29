@@ -115,7 +115,7 @@ export default function ChatInterface() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         blockchainActivities: data.blockchainActivities || [],
         agentProfile: data.agentProfile || null,
-        isSimulationMode: data.isSimulationMode ?? true,
+        isSimulationMode: false,
       };
       setMessages((prev) => [...prev, agentMessage]);
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });

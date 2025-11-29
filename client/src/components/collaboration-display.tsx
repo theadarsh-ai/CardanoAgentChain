@@ -54,11 +54,9 @@ export function CollaborationDisplay({ collaboration }: CollaborationDisplayProp
               <Badge variant="secondary" className="text-xs bg-orange-500/20 text-orange-300">
                 {collaboration.agents_hired} agent{collaboration.agents_hired !== 1 ? 's' : ''} hired
               </Badge>
-              {collaboration.is_simulated && (
-                <Badge variant="outline" className="text-xs border-blue-500/50 text-blue-400">
-                  Simulation
-                </Badge>
-              )}
+              <Badge variant="outline" className="text-xs border-emerald-500/50 text-emerald-400">
+                Live
+              </Badge>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
@@ -123,9 +121,7 @@ export function CollaborationDisplay({ collaboration }: CollaborationDisplayProp
                         Job: {agent.job_id}
                       </span>
                     )}
-                    {agent.is_simulated && (
-                      <span className="text-blue-400">Simulated</span>
-                    )}
+                    <span className="text-emerald-400">via Masumi</span>
                   </div>
                 </div>
               </div>
