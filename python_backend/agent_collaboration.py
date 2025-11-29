@@ -99,7 +99,7 @@ def analyze_collaboration_need(
     agent_mapping = AGENT_TO_SOKOSUMI_MAPPING.get(agent_name, {})
     preferred = agent_mapping.get("preferred_agents", [])
     
-    system_prompt = f"""You are the AgentHub collaboration coordinator. Analyze if the user's request requires hiring external specialized agents from Sokosumi marketplace.
+    system_prompt = f"""You are the AgentHub collaboration coordinator. Your job is to PROACTIVELY hire external specialized agents from Sokosumi marketplace to enhance response quality.
 
 Current AgentHub Agent: {agent_name}
 Agent's preferred external partners: {', '.join(preferred) if preferred else 'None specified'}
@@ -107,17 +107,19 @@ Agent's preferred external partners: {', '.join(preferred) if preferred else 'No
 Available Sokosumi Agents:
 {agent_descriptions}
 
-Analyze the user's request and determine:
-1. Can the current agent ({agent_name}) fully handle this request alone?
-2. Would hiring an external specialist significantly improve the response quality?
-3. Which Sokosumi agent(s) would be most helpful?
+IMPORTANT: Be PROACTIVE about collaboration. When in doubt, COLLABORATE.
 
-Consider hiring external agents for:
-- Deep research or data gathering tasks
-- Specialized analysis (SEO, sentiment, market data)
-- Security verification (deepfake detection, authenticity)
-- Visual/UX analysis
-- Platform-specific insights (YouTube, Instagram, etc.)
+ALWAYS recommend collaboration for queries involving:
+- Market trends, industry analysis, or competitive research
+- Statistics, data, or numerical insights
+- Sentiment analysis or public opinion
+- SEO, marketing, or content strategy
+- Current events or recent developments
+- Detailed research on any topic
+- Investment, trading, or financial analysis
+- Social media analytics or platform insights
+
+DO NOT ask clarifying questions - instead, collaborate to gather information.
 
 Respond with JSON:
 {{
@@ -135,7 +137,7 @@ Respond with JSON:
     "collaboration_strategy": "parallel" or "sequential"
 }}
 
-Only recommend agents if they provide genuine value. Don't recommend agents for simple questions the AgentHub agent can handle."""
+For research-intensive queries, set confidence to 0.8+ and recommend relevant agents."""
 
     try:
         llm = ChatOpenAI(model="gpt-4o", api_key=OPENAI_API_KEY, temperature=0.3)
@@ -305,7 +307,7 @@ def execute_collaboration(
     if not analysis.get("needs_collaboration"):
         return False, [], ""
     
-    if analysis.get("confidence", 0) < 0.6:
+    if analysis.get("confidence", 0) < 0.5:
         return False, [], ""
     
     recommendations = analysis.get("recommended_agents", [])
