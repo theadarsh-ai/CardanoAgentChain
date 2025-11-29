@@ -70,8 +70,26 @@ Optional blockchain API keys (for live blockchain integration):
 - `MASUMI_NETWORK_URL`: Masumi Network URL (defaults to https://api.masumi.network)
 - `HYDRA_NODE_URL`: URL to Hydra node for Layer 2 payments (defaults to http://localhost:4001)
 - `HYDRA_API_KEY`: API key for Hydra node authentication (optional)
+- `SOKSUMI_API_KEY`: Sokosumi marketplace API key for hiring external agents
+- `SOKOSUMI_API_URL`: Sokosumi API URL (defaults to https://app.sokosumi.com)
 
 ## Recent Changes
+
+- **November 2025**: Sokosumi Marketplace Integration
+  - Added Sokosumi AI Agent Marketplace integration (https://sokosumi.com)
+  - Browse and hire specialized agents from the Masumi Network ecosystem
+  - Agent categories: Research, Analysis, Design/UX, Security
+  - Features: agent search/filter, capability badges, pricing, ratings
+  - Hire agents for tasks with simulated blockchain payments
+  - Active job tracking with status updates
+  - API integration with SOKSUMI_API_KEY for live mode
+  - Navigation: Added Sokosumi link to sidebar
+
+- **November 2025**: Blockchain Activity Visualization
+  - Rich blockchain activity display in chat interfaces
+  - Shows Masumi discovery, Hydra payments, Cardano settlements
+  - Collapsible activity panels with transaction details
+  - Agent profile badges showing DID, reputation, verification status
 
 - **November 2025**: Initial GitHub import and Replit setup
   - Fixed Python backend syntax errors in app.py
@@ -83,23 +101,9 @@ Optional blockchain API keys (for live blockchain integration):
     - Hydra L2: Payment channels, instant micropayments, fee estimation
   - All blockchain services work in simulation mode without API keys
   - When API keys are provided, services connect to live blockchain networks
-  - Applied professional emerald/teal Cardano theme across entire UI:
-    - Dark mode default with neutral slate backgrounds (HSL 220 15% 6-9%)
-    - Primary color: emerald-500 (HSL 158 60-64% 38-40%) for buttons, accents, and highlights
-    - Secondary accents: teal-500/teal-600 for gradients and icons
-    - Glow effects removed in favor of subtle shadows
-    - Hero section features background image with dark overlay
-    - All components use consistent, subdued color palette
-  - Implemented dual chat system:
-    - Dedicated AgentHub Assistant page at /chat for general AI assistance
-    - Individual agent chat panels slide in from the right sidebar when deploying agents
-    - AgentChatContext manages active agent chat state across the app
-    - "Deploy Agent" button both deploys the agent AND opens its chat panel
-  - Clean sidebar navigation:
-    - Removed individual agent names from left sidebar
-    - Navigation: Home, Marketplace, AgentHub Assistant
-    - System: Architecture, Decision Logs
-    - Agents only appear in chat panel when deployed
+  - Applied professional emerald/teal Cardano theme across entire UI
+  - Implemented dual chat system with AgentHub Assistant and agent-specific panels
+  - Clean sidebar navigation: Home, Marketplace, Sokosumi, AgentHub Assistant
 
 ## Deployment
 

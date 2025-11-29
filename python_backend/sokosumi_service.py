@@ -158,7 +158,7 @@ def list_agents(category: Optional[str] = None, limit: int = 10) -> Dict[str, An
     """
     if is_live():
         try:
-            params = {"limit": limit}
+            params: Dict[str, Any] = {"limit": limit}
             if category:
                 params["category"] = category
             
