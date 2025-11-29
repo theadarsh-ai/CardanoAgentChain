@@ -30,6 +30,11 @@ from blockchain_activity import (
     is_simulation_mode
 )
 import sokosumi_service
+from agent_collaboration import (
+    execute_collaboration,
+    get_collaboration_summary,
+    analyze_collaboration_need
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -139,12 +144,13 @@ def get_messages(conversation_id):
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """Process a chat message and get agent response."""
+    """Process a chat message and get agent response with automatic Sokosumi collaboration."""
     try:
         data = request.get_json()
         conversation_id = data.get("conversationId")
         message = data.get("message")
         agent_name = data.get("agentName")
+        enable_collaboration = data.get("enableCollaboration", True)
 
         if not conversation_id or not message:
             return jsonify({"error": "conversationId and message are required"}), 400
@@ -177,6 +183,49 @@ def chat():
         if not selected_agent:
             agent_system_prompt = get_master_agent_prompt()
 
+        collaboration_occurred = False
+        hiring_results = []
+        collaboration_context = ""
+        collaboration_summary = {"collaborated": False}
+        
+        if enable_collaboration and response_agent_name != "AgentHub":
+            try:
+                collaboration_occurred, hiring_results, collaboration_context = execute_collaboration(
+                    agent_name=response_agent_name,
+                    user_message=message,
+                    auto_hire=True
+                )
+                
+                if collaboration_occurred and hiring_results:
+                    collaboration_summary = get_collaboration_summary(hiring_results)
+                    
+                    for result in hiring_results:
+                        DecisionLogModel.create(
+                            agent_name=response_agent_name,
+                            action=f"Hired Sokosumi agent: {result.get('agent_name')}",
+                            details=json.dumps({
+                                "hired_agent": result.get("agent_name"),
+                                "task": result.get("task_description"),
+                                "cost_usd": result.get("cost", 0),
+                                "job_id": result.get("job_id"),
+                                "is_simulated": result.get("is_simulated", True)
+                            }),
+                            agent_id=selected_agent["id"] if selected_agent else None,
+                            conversation_id=conversation_id,
+                            status="confirmed"
+                        )
+                        
+                        TransactionModel.create(
+                            from_agent_name=response_agent_name,
+                            to_agent_name=result.get("agent_name"),
+                            from_agent_id=selected_agent["id"] if selected_agent else None,
+                            to_agent_id=None,
+                            status="confirmed"
+                        )
+            except Exception as collab_error:
+                print(f"Collaboration error (non-fatal): {collab_error}")
+                collaboration_context = ""
+
         conversation_history = MessageModel.get_by_conversation(conversation_id)
         formatted_history = [
             {"role": m["sender"] if m["sender"] == "user" else "assistant", "content": m["content"]}
@@ -187,7 +236,8 @@ def chat():
             agent_name=response_agent_name,
             system_prompt=agent_system_prompt,
             user_message=message,
-            conversation_history=formatted_history
+            conversation_history=formatted_history,
+            collaboration_context=collaboration_context if collaboration_context else None
         )
 
         agent_message = MessageModel.create(
@@ -203,11 +253,12 @@ def chat():
 
         DecisionLogModel.create(
             agent_name=response_agent_name,
-            action=f"Processed user request via LangGraph agent",
+            action=f"Processed user request via LangGraph agent" + (" with Sokosumi collaboration" if collaboration_occurred else ""),
             details=json.dumps({
                 "user_message": message[:100],
                 "agent": response_agent_name,
-                "response_preview": response_content[:200]
+                "response_preview": response_content[:200],
+                "collaboration": collaboration_summary if collaboration_occurred else None
             }),
             agent_id=selected_agent["id"] if selected_agent else None,
             conversation_id=conversation_id,
@@ -225,8 +276,25 @@ def chat():
         blockchain_activities = generate_blockchain_activities(
             agent_name=response_agent_name,
             user_message=message,
-            include_collaboration=True
+            include_collaboration=collaboration_occurred
         )
+        
+        if collaboration_occurred and hiring_results:
+            for result in hiring_results:
+                blockchain_activities.append({
+                    "type": "sokosumi_hire",
+                    "title": f"Hired {result.get('agent_name')}",
+                    "description": f"Task: {result.get('task_description', 'Specialized assistance')[:50]}...",
+                    "status": "confirmed",
+                    "timestamp": datetime.now().isoformat(),
+                    "details": {
+                        "agent_id": result.get("agent_id"),
+                        "job_id": result.get("job_id"),
+                        "cost_usd": result.get("cost", 0),
+                        "payment_method": "Hydra L2",
+                        "is_simulated": result.get("is_simulated", True)
+                    }
+                })
         
         agent_masumi_profile = get_agent_masumi_profile(response_agent_name)
 
@@ -236,7 +304,8 @@ def chat():
             "selectedAgent": response_agent_name,
             "blockchainActivities": blockchain_activities,
             "agentProfile": agent_masumi_profile,
-            "isSimulationMode": is_simulation_mode()
+            "isSimulationMode": is_simulation_mode(),
+            "collaboration": collaboration_summary
         })
     except Exception as e:
         print(f"Error in chat: {e}")

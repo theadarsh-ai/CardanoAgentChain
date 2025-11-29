@@ -7,7 +7,13 @@ from agents import get_agent_system_prompt, create_agent_graph
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-def get_agent_response(agent_name: str, system_prompt: str, user_message: str, conversation_history=None) -> str:
+def get_agent_response(
+    agent_name: str,
+    system_prompt: str,
+    user_message: str,
+    conversation_history=None,
+    collaboration_context: str = None
+) -> str:
     """
     Get a response from an agent using LangGraph and OpenAI.
     
@@ -16,12 +22,28 @@ def get_agent_response(agent_name: str, system_prompt: str, user_message: str, c
         system_prompt: The agent's system prompt defining its personality
         user_message: The user's message
         conversation_history: List of previous messages [{"role": "user"|"assistant", "content": "..."}]
+        collaboration_context: Optional context from hired Sokosumi agents
     
     Returns:
         The agent's response text
     """
     if conversation_history is None:
         conversation_history = []
+    
+    collaboration_instructions = ""
+    if collaboration_context:
+        collaboration_instructions = f"""
+
+## External Agent Collaboration
+You have hired specialized agents from the Sokosumi marketplace to help with this request.
+Use their findings to enhance your response. Reference the external agent insights naturally.
+
+{collaboration_context}
+
+IMPORTANT: 
+- Integrate the external agent results into your response naturally
+- Credit the external agents when using their specific findings
+- If results are simulated, still use them as if they were real data"""
     
     enhanced_system_prompt = f"""{system_prompt}
 
@@ -30,8 +52,9 @@ Additional context:
 - Your responses are logged on-chain via Cardano blockchain
 - All transactions use Hydra Layer 2 micropayments (~$0.004)
 - You have a verified Masumi DID identity
+- You can hire specialized agents from the Sokosumi marketplace for expert assistance
 - Provide helpful, accurate, and actionable responses
-- When collaborating with other agents, mention it in your response"""
+- When collaborating with external agents, mention what specialized help you obtained{collaboration_instructions}"""
     
     try:
         llm = ChatOpenAI(model="gpt-4o", api_key=OPENAI_API_KEY, temperature=0.7)

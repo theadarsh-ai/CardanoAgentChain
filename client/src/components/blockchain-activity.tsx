@@ -11,7 +11,9 @@ import {
   ExternalLink,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Handshake,
+  Bot
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,6 +53,8 @@ const iconMap: Record<string, React.ElementType> = {
   UserPlus: UserPlus,
   FileCheck: FileCheck,
   Star: Star,
+  Handshake: Handshake,
+  Bot: Bot,
 };
 
 const statusColors: Record<string, string> = {
@@ -83,6 +87,8 @@ function ActivityItem({ activity }: { activity: BlockchainActivity }) {
         return "from-cyan-500/20 to-cyan-600/10 border-cyan-500/30";
       case "agent_hiring":
         return "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30";
+      case "sokosumi_hire":
+        return "from-orange-500/20 to-orange-600/10 border-orange-500/30";
       case "cardano_audit":
         return "from-blue-500/20 to-blue-600/10 border-blue-500/30";
       case "reputation_update":
@@ -101,6 +107,8 @@ function ActivityItem({ activity }: { activity: BlockchainActivity }) {
         return "text-cyan-400";
       case "agent_hiring":
         return "text-emerald-400";
+      case "sokosumi_hire":
+        return "text-orange-400";
       case "cardano_audit":
         return "text-blue-400";
       case "reputation_update":
